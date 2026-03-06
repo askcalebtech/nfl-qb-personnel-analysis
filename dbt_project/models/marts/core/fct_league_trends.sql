@@ -35,7 +35,8 @@ league_aggregates as (
         
         -- League Average Performance
         avg(epa) as league_epa_per_play,
-        stddev(epa) as league_epa_std_dev,
+        -- SQLite has no stddev(); use population stddev formula
+        sqrt(max(0.0, avg(epa * epa) - avg(epa) * avg(epa))) as league_epa_std_dev,
         avg(case when success = 1 then 1.0 else 0.0 end) as league_success_rate,
         
         -- Pass/Run Split
