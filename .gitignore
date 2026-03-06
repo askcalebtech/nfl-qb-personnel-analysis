@@ -1,0 +1,25 @@
+# Data files
+data/raw/
+data/processed/
+data/analytics/
+
+# Python
+__pycache__/
+*.pyc
+.env
+venv/
+*.egg-info/
+
+# dbt
+dbt_project/target/
+dbt_project/logs/
+dbt_project/.user.yml
+dbt_project/profiles.yml
+
+# Spark
+derby.log
+metastore_db/
+dist/
+
+# OS
+.DS_Store
