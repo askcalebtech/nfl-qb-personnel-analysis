@@ -33,8 +33,10 @@ aggregated as (
 
         -- Volume
         count(*)                                                        as play_count,
-        sum(case when play_type = 'pass' then 1 else 0 end)            as pass_attempts,
-        sum(case when play_type = 'run'  then 1 else 0 end)            as qb_rushes,
+        sum(pass_attempt)                                               as pass_attempts,
+        sum(sack)                                                       as sacks,
+        sum(qb_scramble)                                                as scrambles,
+        sum(case when play_type = 'run' and coalesce(qb_scramble, 0) = 0 then 1 else 0 end) as qb_rushes,
 
         -- Performance
         avg(epa)                                                        as epa_per_play,

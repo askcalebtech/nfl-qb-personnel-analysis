@@ -61,6 +61,8 @@ class QB(BaseModel):
     seasons_played: Optional[int] = None
     career_plays: Optional[int] = None
     career_pass_attempts: Optional[int] = None
+    career_sacks: Optional[int] = None
+    career_scrambles: Optional[int] = None
     career_qb_rushes: Optional[int] = None
     career_epa_per_play: Optional[float] = None
     career_success_rate: Optional[float] = None
@@ -85,6 +87,8 @@ class QBStats(BaseModel):
     personnel_matchup: Optional[str] = None
     play_count: Optional[int] = None
     pass_attempts: Optional[int] = None
+    sacks: Optional[int] = None
+    scrambles: Optional[int] = None
     qb_rushes: Optional[int] = None
     epa_per_play: Optional[float] = None
     total_epa: Optional[float] = None

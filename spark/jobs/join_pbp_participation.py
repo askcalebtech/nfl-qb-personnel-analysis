@@ -182,7 +182,8 @@ def select_relevant_columns(df: DataFrame) -> DataFrame:
     # Play details
     play_cols = [
         'play_type', 'down', 'ydstogo', 'yardline_100', 'goal_to_go',
-        'qtr', 'time', 'desc', 'yards_gained'
+        'qtr', 'time', 'desc', 'yards_gained',
+        'pass_attempt', 'sack', 'qb_scramble'
     ]
     
     # QB/Passer info

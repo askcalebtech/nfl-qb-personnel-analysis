@@ -34,6 +34,8 @@ qb_career_stats as (
         -- Total plays across all matchups and seasons
         sum(play_count) as career_plays,
         sum(pass_attempts) as career_pass_attempts,
+        sum(sacks) as career_sacks,
+        sum(scrambles) as career_scrambles,
         sum(qb_rushes) as career_qb_rushes,
         
         -- Weighted averages (weighted by play count)

@@ -62,6 +62,11 @@ cleaned as (
         air_epa,
         yac_epa,
         
+        -- Play type flags (from nflfastR binary columns)
+        pass_attempt,
+        sack,
+        qb_scramble,
+
         -- Additional Context
         score_differential,
         ep as expected_points,
