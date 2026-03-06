@@ -166,21 +166,42 @@ See [airflow/README.md](airflow/README.md) for full setup details.
 ### Sample Results
 
 ```bash
-# Top QBs in 11 vs Nickel, 2024 (filter to meets_starter_threshold client-side)
 curl "http://localhost:8000/matchup/11_vs_Nickel?season=2024"
 ```
 
-Top 5 by EPA/play among QBs with 50+ plays in this matchup:
+### 2024 NFL QB Rankings — 11 Personnel vs Nickel Defense
 
-```json
-[
-  { "qb_name": "M.Willis",  "play_count": 51,  "epa_per_play": 0.659, "pass_attempts": 41,  "sacks": 4,  "scrambles": 6,  "success_rate": 0.471 },
-  { "qb_name": "J.Goff",    "play_count": 339, "epa_per_play": 0.273, "pass_attempts": 315, "sacks": 16, "scrambles": 8,  "success_rate": 0.516 },
-  { "qb_name": "J.Allen",   "play_count": 305, "epa_per_play": 0.239, "pass_attempts": 268, "sacks": 10, "scrambles": 27, "success_rate": 0.475 },
-  { "qb_name": "P.Mahomes", "play_count": 265, "epa_per_play": 0.206, "pass_attempts": 236, "sacks": 15, "scrambles": 14, "success_rate": 0.494 },
-  { "qb_name": "J.Hurts",   "play_count": 277, "epa_per_play": 0.204, "pass_attempts": 231, "sacks": 20, "scrambles": 26, "success_rate": 0.513 }
-]
-```
+*Minimum 100 plays. EPA/Play = Expected Points Added per play, a measure of QB efficiency above expectation.*
+
+**Top 10**
+
+| Rank | QB | Plays | EPA/Play | Pass Att | Sacks | Scrambles |
+|-----:|----|------:|----------|--------:|------:|----------:|
+| 1 | J.Goff | 339 | +0.273 | 315 | 16 | 8 |
+| 2 | J.Allen | 305 | +0.239 | 268 | 10 | 27 |
+| 3 | P.Mahomes | 265 | +0.206 | 236 | 15 | 14 |
+| 4 | J.Hurts | 277 | +0.204 | 231 | 20 | 26 |
+| 5 | T.Tagovailoa | 153 | +0.179 | 142 | 8 | 3 |
+| 6 | J.Burrow | 374 | +0.171 | 343 | 20 | 11 |
+| 7 | B.Purdy | 206 | +0.144 | 172 | 11 | 23 |
+| 8 | J.Daniels | 325 | +0.142 | 264 | 25 | 36 |
+| 9 | R.Wilson | 195 | +0.123 | 170 | 20 | 5 |
+| 10 | L.Jackson | 150 | +0.101 | 130 | 9 | 11 |
+
+**Bottom 10**
+
+| Rank | QB | Plays | EPA/Play | Pass Att | Sacks | Scrambles |
+|-----:|----|------:|----------|--------:|------:|----------:|
+| 31 | D.Jones | 237 | -0.098 | 210 | 19 | 8 |
+| 32 | C.Stroud | 357 | -0.108 | 305 | 38 | 14 |
+| 33 | A.Richardson | 207 | -0.113 | 178 | 11 | 18 |
+| 34 | C.Rush | 215 | -0.127 | 200 | 12 | 3 |
+| 35 | D.Lock | 152 | -0.135 | 136 | 10 | 6 |
+| 36 | J.Brissett | 120 | -0.171 | 101 | 13 | 6 |
+| 37 | W.Levis | 229 | -0.198 | 192 | 24 | 13 |
+| 38 | S.Rattler | 109 | -0.211 | 95 | 7 | 7 |
+| 39 | D.Watson | 166 | -0.275 | 131 | 20 | 15 |
+| 40 | A.Dalton | 115 | -0.287 | 107 | 4 | 4 |
 
 ---
 
@@ -228,7 +249,7 @@ int_qb_personnel_plays (view)
 
 - **11 vs Nickel** is the dominant matchup at 52% of all QB plays — the modern NFL is a nickel-vs-spread game
 - **2,461 QB × season × personnel matchup** combinations tracked across 50 distinct matchup types
-- **Lamar Jackson** leads EPA/play in 11 vs Nickel in 2024 at 0.312, driven partly by scramble efficiency
+- **Jared Goff** leads EPA/play among 100+ play QBs in 11 vs Nickel in 2024 at +0.273; 40 QBs qualify at that threshold
 - **Year-over-year trends** in `fct_league_trends` show Dime defense usage increasing as offenses push more 11 personnel
 
 ---
