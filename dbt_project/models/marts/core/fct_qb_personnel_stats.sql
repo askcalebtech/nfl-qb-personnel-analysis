@@ -33,7 +33,7 @@ aggregated as (
 
         -- Volume
         count(*)                                                        as play_count,
-        sum(pass_attempt)                                               as pass_attempts,
+        sum(case when pass_attempt = 1 and sack = 0 then 1 else 0 end)  as pass_attempts,
         sum(sack)                                                       as sacks,
         sum(qb_scramble)                                                as scrambles,
         sum(case when play_type = 'run' and coalesce(qb_scramble, 0) = 0 then 1 else 0 end) as qb_rushes,

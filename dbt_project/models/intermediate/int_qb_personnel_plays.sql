@@ -71,3 +71,4 @@ enriched as (
 )
 
 select * from enriched
+where play_type != 'no_play'

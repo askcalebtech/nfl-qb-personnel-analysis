@@ -28,7 +28,7 @@ cleaned as (
         play_id,
         
         -- QB Information
-        passer_player_id as qb_id,
+        coalesce(passer_player_id, passer_id) as qb_id,
         passer_player_name as qb_name,
         passer_id as qb_id_alt,
         
