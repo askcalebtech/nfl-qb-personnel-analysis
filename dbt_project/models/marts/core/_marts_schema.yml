@@ -1,0 +1,94 @@
+version: 2
+
+models:
+  - name: fct_qb_personnel_stats
+    description: >
+      QB performance statistics by personnel matchup.
+      Core fact table for analyzing how QBs perform in different
+      offensive vs defensive personnel situations.
+    
+    columns:
+      - name: qb_id
+        description: Unique QB identifier
+        tests:
+          - not_null
+      
+      - name: season
+        description: NFL season
+        tests:
+          - not_null
+      
+      - name: personnel_matchup
+        description: Combined matchup (e.g., "11 vs Nickel")
+        tests:
+          - not_null
+      
+      - name: play_count
+        description: Number of plays in this matchup
+        tests:
+          - not_null
+      
+      - name: epa_per_play
+        description: Average EPA per play in this matchup
+      
+      - name: success_rate
+        description: Percentage of successful plays (positive EPA)
+      
+      - name: meets_min_threshold
+        description: Flag for statistical significance (20+ plays)
+
+  - name: fct_league_trends
+    description: >
+      League-wide personnel usage and performance trends.
+      Shows which matchups are most common and league-average performance.
+    
+    columns:
+      - name: season
+        description: NFL season
+        tests:
+          - not_null
+      
+      - name: personnel_matchup
+        description: Combined matchup
+        tests:
+          - not_null
+      
+      - name: league_play_count
+        description: Total plays in this matchup across all QBs
+        tests:
+          - not_null
+      
+      - name: usage_pct
+        description: Percentage of all plays using this matchup
+      
+      - name: league_epa_per_play
+        description: League average EPA for this matchup
+      
+      - name: usage_rank
+        description: Rank by frequency (1 = most common)
+
+  - name: dim_qbs
+    description: >
+      QB dimension table with career aggregates.
+      One row per QB with summary statistics across all seasons and matchups.
+    
+    columns:
+      - name: qb_id
+        description: Unique QB identifier
+        tests:
+          - unique
+          - not_null
+      
+      - name: qb_name
+        description: QB name
+      
+      - name: career_plays
+        description: Total plays across all seasons
+        tests:
+          - not_null
+      
+      - name: career_epa_per_play
+        description: Career-average EPA per play
+      
+      - name: is_starter
+        description: Flag for QBs with 500+ career plays

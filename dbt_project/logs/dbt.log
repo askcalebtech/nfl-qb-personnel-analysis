@@ -1,0 +1,969 @@
+[0m16:19:42.169165 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x107f3c100>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x108fc5310>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x108fc5fa0>]}
+
+
+============================== 16:19:42.173910 | 970672de-63cf-4bc2-babe-675ebf6f733f ==============================
+[0m16:19:42.173910 [info ] [MainThread]: Running with dbt=1.10.15
+[0m16:19:42.174499 [debug] [MainThread]: running dbt with arguments {'version_check': 'True', 'invocation_command': 'dbt debug --profiles-dir .', 'use_colors': 'True', 'introspect': 'True', 'indirect_selection': 'eager', 'write_json': 'True', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'use_experimental_parser': 'False', 'empty': 'None', 'log_format': 'default', 'no_print': 'None', 'log_cache_events': 'False', 'printer_width': '80', 'warn_error': 'None', 'target_path': 'None', 'log_path': '/Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/logs', 'cache_selected_only': 'False', 'profiles_dir': '.', 'fail_fast': 'False', 'static_parser': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'partial_parse': 'True', 'debug': 'False'}
+[0m16:19:42.182261 [info ] [MainThread]: dbt version: 1.10.15
+[0m16:19:42.182608 [info ] [MainThread]: python version: 3.9.13
+[0m16:19:42.182935 [info ] [MainThread]: python path: /Users/calebsherman/.pyenv/versions/3.9.13/bin/python
+[0m16:19:42.183237 [info ] [MainThread]: os info: macOS-15.7.1-arm64-arm-64bit
+[0m16:19:42.200740 [info ] [MainThread]: Using profiles dir at .
+[0m16:19:42.201097 [info ] [MainThread]: Using profiles.yml file at ./profiles.yml
+[0m16:19:42.201320 [info ] [MainThread]: Using dbt_project.yml file at /Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/dbt_project.yml
+[0m16:19:42.201665 [info ] [MainThread]: adapter type: sqlite
+[0m16:19:42.201872 [info ] [MainThread]: adapter version: 1.10.0
+[0m16:19:42.245124 [info ] [MainThread]: Configuration:
+[0m16:19:42.245515 [info ] [MainThread]:   profiles.yml file [[32mOK found and valid[0m]
+[0m16:19:42.245726 [info ] [MainThread]:   dbt_project.yml file [[31mERROR invalid[0m]
+[0m16:19:42.245921 [info ] [MainThread]: Required dependencies:
+[0m16:19:42.246182 [debug] [MainThread]: Executing "git --help"
+[0m16:19:42.256431 [debug] [MainThread]: STDOUT: "b"usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]\n           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]\n           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--no-lazy-fetch]\n           [--no-optional-locks] [--no-advice] [--bare] [--git-dir=<path>]\n           [--work-tree=<path>] [--namespace=<name>] [--config-env=<name>=<envvar>]\n           <command> [<args>]\n\nThese are common Git commands used in various situations:\n\nstart a working area (see also: git help tutorial)\n   clone      Clone a repository into a new directory\n   init       Create an empty Git repository or reinitialize an existing one\n\nwork on the current change (see also: git help everyday)\n   add        Add file contents to the index\n   mv         Move or rename a file, a directory, or a symlink\n   restore    Restore working tree files\n   rm         Remove files from the working tree and from the index\n\nexamine the history and state (see also: git help revisions)\n   bisect     Use binary search to find the commit that introduced a bug\n   diff       Show changes between commits, commit and working tree, etc\n   grep       Print lines matching a pattern\n   log        Show commit logs\n   show       Show various types of objects\n   status     Show the working tree status\n\ngrow, mark and tweak your common history\n   backfill   Download missing objects in a partial clone\n   branch     List, create, or delete branches\n   commit     Record changes to the repository\n   merge      Join two or more development histories together\n   rebase     Reapply commits on top of another base tip\n   reset      Reset current HEAD to the specified state\n   switch     Switch branches\n   tag        Create, list, delete or verify a tag object signed with GPG\n\ncollaborate (see also: git help workflows)\n   fetch      Download objects and refs from another repository\n   pull       Fetch from and integrate with another repository or a local branch\n   push       Update remote refs along with associated objects\n\n'git help -a' and 'git help -g' list available subcommands and some\nconcept guides. See 'git help <command>' or 'git help <concept>'\nto read about a specific subcommand or concept.\nSee 'git help git' for an overview of the system.\n""
+[0m16:19:42.257282 [debug] [MainThread]: STDERR: "b''"
+[0m16:19:42.257615 [info ] [MainThread]:  - git [[32mOK found[0m]
+
+[0m16:19:42.257845 [info ] [MainThread]: Connection:
+[0m16:19:42.258097 [info ] [MainThread]:   database: nfl_qb_analysis
+[0m16:19:42.258298 [info ] [MainThread]:   schema: main
+[0m16:19:42.258497 [info ] [MainThread]:   schemas_and_paths: {'main': '/home/claude/nfl-qb-personnel-analysis/data/analytics/nfl_qb_analysis.db'}
+[0m16:19:42.258695 [info ] [MainThread]:   schema_directory: /home/claude/nfl-qb-personnel-analysis/data/analytics
+[0m16:19:42.259101 [info ] [MainThread]: Registered adapter: sqlite=1.10.0
+[0m16:19:42.335455 [debug] [MainThread]: Acquiring new sqlite connection 'debug'
+[0m16:19:42.377409 [debug] [MainThread]: Using sqlite connection "debug"
+[0m16:19:42.377739 [debug] [MainThread]: On debug: select 1 as id
+[0m16:19:42.377947 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m16:19:42.575253 [warn ] [MainThread]: [AdapterEventDebug]: Unable to parse logging event dictionary. Failed to parse args field: Value unable to open database file has unexpected type <class 'sqlite3.OperationalError'> at AdapterEventDebug.args[0].. Dictionary: {'name': 'SQLite', 'base_msg': "Got an error when attempting to open a sqlite3 connection: '%s'", 'args': [OperationalError('unable to open database file')], 'node_info': {}}
+[0m16:19:42.575770 [debug] [MainThread]:  adapter: 
+[0m16:19:42.576142 [debug] [MainThread]: SQLite adapter: Error running SQL: select 1 as id
+[0m16:19:42.576416 [debug] [MainThread]: SQLite adapter: Rolling back transaction.
+[0m16:19:42.576694 [debug] [MainThread]: On debug: No close available on handle
+[0m16:19:42.577097 [info ] [MainThread]:   Connection test: [[31mERROR[0m]
+
+[0m16:19:42.577449 [info ] [MainThread]: [31m2 checks failed:[0m
+[0m16:19:42.577765 [info ] [MainThread]: Project loading failed for the following reason:
+Runtime Error
+  at path []: Additional properties are not allowed ('docs' was unexpected)
+
+Error encountered in /Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/dbt_project.yml
+
+
+[0m16:19:42.578150 [info ] [MainThread]: dbt was unable to connect to the specified database.
+The database returned the following error:
+
+  >Runtime Error
+  Database Error
+    unable to open database file
+
+Check your database credentials and try again. For more information, visit:
+https://docs.getdbt.com/docs/configure-your-profile
+
+
+[0m16:19:42.585310 [debug] [MainThread]: Resource report: {"command_name": "debug", "command_success": false, "command_wall_clock_time": 0.571302, "process_in_blocks": "0", "process_kernel_time": 0.197881, "process_mem_max_rss": "111706112", "process_out_blocks": "0", "process_user_time": 0.979363}
+[0m16:19:42.585832 [debug] [MainThread]: Command `dbt debug` failed at 16:19:42.585738 after 0.57 seconds
+[0m16:19:42.586164 [debug] [MainThread]: Connection 'debug' was properly closed.
+[0m16:19:42.586486 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x107f3c100>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1091011c0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x109111d00>]}
+[0m16:19:42.586878 [debug] [MainThread]: Flushing usage events
+[0m16:19:43.169965 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m16:21:15.991820 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1059ba070>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x106d35a90>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x106d35490>]}
+
+
+============================== 16:21:15.995240 | 075f0f24-faa0-4e29-96bc-a2c7c37d7b69 ==============================
+[0m16:21:15.995240 [info ] [MainThread]: Running with dbt=1.10.15
+[0m16:21:15.995639 [debug] [MainThread]: running dbt with arguments {'version_check': 'True', 'use_experimental_parser': 'False', 'warn_error': 'None', 'profiles_dir': '.', 'write_json': 'True', 'printer_width': '80', 'debug': 'False', 'log_format': 'default', 'target_path': 'None', 'log_path': '/Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/logs', 'send_anonymous_usage_stats': 'True', 'empty': 'None', 'log_cache_events': 'False', 'fail_fast': 'False', 'introspect': 'True', 'partial_parse': 'True', 'static_parser': 'True', 'cache_selected_only': 'False', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'quiet': 'False', 'indirect_selection': 'eager', 'use_colors': 'True', 'no_print': 'None', 'invocation_command': 'dbt debug --profiles-dir .'}
+[0m16:21:16.002053 [info ] [MainThread]: dbt version: 1.10.15
+[0m16:21:16.002396 [info ] [MainThread]: python version: 3.9.13
+[0m16:21:16.002611 [info ] [MainThread]: python path: /Users/calebsherman/.pyenv/versions/3.9.13/bin/python
+[0m16:21:16.002809 [info ] [MainThread]: os info: macOS-15.7.1-arm64-arm-64bit
+[0m16:21:16.019234 [info ] [MainThread]: Using profiles dir at .
+[0m16:21:16.019615 [info ] [MainThread]: Using profiles.yml file at ./profiles.yml
+[0m16:21:16.019831 [info ] [MainThread]: Using dbt_project.yml file at /Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/dbt_project.yml
+[0m16:21:16.020649 [info ] [MainThread]: adapter type: sqlite
+[0m16:21:16.020908 [info ] [MainThread]: adapter version: 1.10.0
+[0m16:21:16.095338 [info ] [MainThread]: Configuration:
+[0m16:21:16.095745 [info ] [MainThread]:   profiles.yml file [[32mOK found and valid[0m]
+[0m16:21:16.095965 [info ] [MainThread]:   dbt_project.yml file [[32mOK found and valid[0m]
+[0m16:21:16.096169 [info ] [MainThread]: Required dependencies:
+[0m16:21:16.096536 [debug] [MainThread]: Executing "git --help"
+[0m16:21:16.107873 [debug] [MainThread]: STDOUT: "b"usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]\n           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]\n           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--no-lazy-fetch]\n           [--no-optional-locks] [--no-advice] [--bare] [--git-dir=<path>]\n           [--work-tree=<path>] [--namespace=<name>] [--config-env=<name>=<envvar>]\n           <command> [<args>]\n\nThese are common Git commands used in various situations:\n\nstart a working area (see also: git help tutorial)\n   clone      Clone a repository into a new directory\n   init       Create an empty Git repository or reinitialize an existing one\n\nwork on the current change (see also: git help everyday)\n   add        Add file contents to the index\n   mv         Move or rename a file, a directory, or a symlink\n   restore    Restore working tree files\n   rm         Remove files from the working tree and from the index\n\nexamine the history and state (see also: git help revisions)\n   bisect     Use binary search to find the commit that introduced a bug\n   diff       Show changes between commits, commit and working tree, etc\n   grep       Print lines matching a pattern\n   log        Show commit logs\n   show       Show various types of objects\n   status     Show the working tree status\n\ngrow, mark and tweak your common history\n   backfill   Download missing objects in a partial clone\n   branch     List, create, or delete branches\n   commit     Record changes to the repository\n   merge      Join two or more development histories together\n   rebase     Reapply commits on top of another base tip\n   reset      Reset current HEAD to the specified state\n   switch     Switch branches\n   tag        Create, list, delete or verify a tag object signed with GPG\n\ncollaborate (see also: git help workflows)\n   fetch      Download objects and refs from another repository\n   pull       Fetch from and integrate with another repository or a local branch\n   push       Update remote refs along with associated objects\n\n'git help -a' and 'git help -g' list available subcommands and some\nconcept guides. See 'git help <command>' or 'git help <concept>'\nto read about a specific subcommand or concept.\nSee 'git help git' for an overview of the system.\n""
+[0m16:21:16.108618 [debug] [MainThread]: STDERR: "b''"
+[0m16:21:16.108905 [info ] [MainThread]:  - git [[32mOK found[0m]
+
+[0m16:21:16.109169 [info ] [MainThread]: Connection:
+[0m16:21:16.109409 [info ] [MainThread]:   database: nfl_qb_analysis
+[0m16:21:16.109602 [info ] [MainThread]:   schema: main
+[0m16:21:16.109936 [info ] [MainThread]:   schemas_and_paths: {'main': '/home/claude/nfl-qb-personnel-analysis/data/analytics/nfl_qb_analysis.db'}
+[0m16:21:16.110237 [info ] [MainThread]:   schema_directory: /home/claude/nfl-qb-personnel-analysis/data/analytics
+[0m16:21:16.110715 [info ] [MainThread]: Registered adapter: sqlite=1.10.0
+[0m16:21:16.184177 [debug] [MainThread]: Acquiring new sqlite connection 'debug'
+[0m16:21:16.223290 [debug] [MainThread]: Using sqlite connection "debug"
+[0m16:21:16.223610 [debug] [MainThread]: On debug: select 1 as id
+[0m16:21:16.223824 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m16:21:16.317421 [warn ] [MainThread]: [AdapterEventDebug]: Unable to parse logging event dictionary. Failed to parse args field: Value unable to open database file has unexpected type <class 'sqlite3.OperationalError'> at AdapterEventDebug.args[0].. Dictionary: {'name': 'SQLite', 'base_msg': "Got an error when attempting to open a sqlite3 connection: '%s'", 'args': [OperationalError('unable to open database file')], 'node_info': {}}
+[0m16:21:16.317791 [debug] [MainThread]:  adapter: 
+[0m16:21:16.318261 [debug] [MainThread]: SQLite adapter: Error running SQL: select 1 as id
+[0m16:21:16.318511 [debug] [MainThread]: SQLite adapter: Rolling back transaction.
+[0m16:21:16.318728 [debug] [MainThread]: On debug: No close available on handle
+[0m16:21:16.319015 [info ] [MainThread]:   Connection test: [[31mERROR[0m]
+
+[0m16:21:16.319242 [info ] [MainThread]: [31m1 check failed:[0m
+[0m16:21:16.319531 [info ] [MainThread]: dbt was unable to connect to the specified database.
+The database returned the following error:
+
+  >Runtime Error
+  Database Error
+    unable to open database file
+
+Check your database credentials and try again. For more information, visit:
+https://docs.getdbt.com/docs/configure-your-profile
+
+
+[0m16:21:16.321219 [debug] [MainThread]: Resource report: {"command_name": "debug", "command_success": false, "command_wall_clock_time": 0.38856092, "process_in_blocks": "0", "process_kernel_time": 0.219687, "process_mem_max_rss": "113213440", "process_out_blocks": "0", "process_user_time": 1.030964}
+[0m16:21:16.321556 [debug] [MainThread]: Command `dbt debug` failed at 16:21:16.321491 after 0.39 seconds
+[0m16:21:16.321809 [debug] [MainThread]: Connection 'debug' was properly closed.
+[0m16:21:16.322057 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1059ba070>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x106e13670>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x106d350a0>]}
+[0m16:21:16.322338 [debug] [MainThread]: Flushing usage events
+[0m16:21:16.677090 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m16:26:55.652672 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1063d60d0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x107f81310>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x107f81f70>]}
+
+
+============================== 16:26:55.655420 | 19276d72-e0f6-4b5c-9a3b-8d934f95ebbd ==============================
+[0m16:26:55.655420 [info ] [MainThread]: Running with dbt=1.10.15
+[0m16:26:55.655798 [debug] [MainThread]: running dbt with arguments {'no_print': 'None', 'introspect': 'True', 'indirect_selection': 'eager', 'cache_selected_only': 'False', 'fail_fast': 'False', 'empty': 'None', 'quiet': 'False', 'send_anonymous_usage_stats': 'True', 'log_cache_events': 'False', 'use_colors': 'True', 'profiles_dir': '.', 'warn_error': 'None', 'printer_width': '80', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'version_check': 'True', 'log_format': 'default', 'write_json': 'True', 'invocation_command': 'dbt debug --profiles-dir .', 'log_path': '/Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/logs', 'debug': 'False', 'target_path': 'None', 'use_experimental_parser': 'False', 'partial_parse': 'True', 'static_parser': 'True'}
+[0m16:26:55.664883 [info ] [MainThread]: dbt version: 1.10.15
+[0m16:26:55.665178 [info ] [MainThread]: python version: 3.9.13
+[0m16:26:55.665376 [info ] [MainThread]: python path: /Users/calebsherman/.pyenv/versions/3.9.13/bin/python
+[0m16:26:55.665567 [info ] [MainThread]: os info: macOS-15.7.1-arm64-arm-64bit
+[0m16:26:55.681658 [info ] [MainThread]: Using profiles dir at .
+[0m16:26:55.682024 [info ] [MainThread]: Using profiles.yml file at ./profiles.yml
+[0m16:26:55.682237 [info ] [MainThread]: Using dbt_project.yml file at /Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/dbt_project.yml
+[0m16:26:55.682675 [info ] [MainThread]: adapter type: sqlite
+[0m16:26:55.682925 [info ] [MainThread]: adapter version: 1.10.0
+[0m16:26:55.724965 [info ] [MainThread]: Configuration:
+[0m16:26:55.725345 [info ] [MainThread]:   profiles.yml file [[32mOK found and valid[0m]
+[0m16:26:55.725547 [info ] [MainThread]:   dbt_project.yml file [[31mERROR invalid[0m]
+[0m16:26:55.725732 [info ] [MainThread]: Required dependencies:
+[0m16:26:55.725993 [debug] [MainThread]: Executing "git --help"
+[0m16:26:55.741104 [debug] [MainThread]: STDOUT: "b"usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]\n           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]\n           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--no-lazy-fetch]\n           [--no-optional-locks] [--no-advice] [--bare] [--git-dir=<path>]\n           [--work-tree=<path>] [--namespace=<name>] [--config-env=<name>=<envvar>]\n           <command> [<args>]\n\nThese are common Git commands used in various situations:\n\nstart a working area (see also: git help tutorial)\n   clone      Clone a repository into a new directory\n   init       Create an empty Git repository or reinitialize an existing one\n\nwork on the current change (see also: git help everyday)\n   add        Add file contents to the index\n   mv         Move or rename a file, a directory, or a symlink\n   restore    Restore working tree files\n   rm         Remove files from the working tree and from the index\n\nexamine the history and state (see also: git help revisions)\n   bisect     Use binary search to find the commit that introduced a bug\n   diff       Show changes between commits, commit and working tree, etc\n   grep       Print lines matching a pattern\n   log        Show commit logs\n   show       Show various types of objects\n   status     Show the working tree status\n\ngrow, mark and tweak your common history\n   backfill   Download missing objects in a partial clone\n   branch     List, create, or delete branches\n   commit     Record changes to the repository\n   merge      Join two or more development histories together\n   rebase     Reapply commits on top of another base tip\n   reset      Reset current HEAD to the specified state\n   switch     Switch branches\n   tag        Create, list, delete or verify a tag object signed with GPG\n\ncollaborate (see also: git help workflows)\n   fetch      Download objects and refs from another repository\n   pull       Fetch from and integrate with another repository or a local branch\n   push       Update remote refs along with associated objects\n\n'git help -a' and 'git help -g' list available subcommands and some\nconcept guides. See 'git help <command>' or 'git help <concept>'\nto read about a specific subcommand or concept.\nSee 'git help git' for an overview of the system.\n""
+[0m16:26:55.741974 [debug] [MainThread]: STDERR: "b''"
+[0m16:26:55.742250 [info ] [MainThread]:  - git [[32mOK found[0m]
+
+[0m16:26:55.742485 [info ] [MainThread]: Connection:
+[0m16:26:55.742726 [info ] [MainThread]:   database: nfl_qb_analysis
+[0m16:26:55.742926 [info ] [MainThread]:   schema: main
+[0m16:26:55.743116 [info ] [MainThread]:   schemas_and_paths: {'main': './nfl-qb-personnel-analysis/data/analytics/nfl_qb_analysis.db'}
+[0m16:26:55.743297 [info ] [MainThread]:   schema_directory: ./nfl-qb-personnel-analysis/data/analytics
+[0m16:26:55.743713 [info ] [MainThread]: Registered adapter: sqlite=1.10.0
+[0m16:26:55.811382 [debug] [MainThread]: Acquiring new sqlite connection 'debug'
+[0m16:26:55.845991 [debug] [MainThread]: Using sqlite connection "debug"
+[0m16:26:55.846298 [debug] [MainThread]: On debug: select 1 as id
+[0m16:26:55.846496 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m16:26:55.848552 [warn ] [MainThread]: [AdapterEventDebug]: Unable to parse logging event dictionary. Failed to parse args field: Value unable to open database file has unexpected type <class 'sqlite3.OperationalError'> at AdapterEventDebug.args[0].. Dictionary: {'name': 'SQLite', 'base_msg': "Got an error when attempting to open a sqlite3 connection: '%s'", 'args': [OperationalError('unable to open database file')], 'node_info': {}}
+[0m16:26:55.848808 [debug] [MainThread]:  adapter: 
+[0m16:26:55.849130 [debug] [MainThread]: SQLite adapter: Error running SQL: select 1 as id
+[0m16:26:55.849348 [debug] [MainThread]: SQLite adapter: Rolling back transaction.
+[0m16:26:55.849539 [debug] [MainThread]: On debug: No close available on handle
+[0m16:26:55.849809 [info ] [MainThread]:   Connection test: [[31mERROR[0m]
+
+[0m16:26:55.850061 [info ] [MainThread]: [31m2 checks failed:[0m
+[0m16:26:55.850261 [info ] [MainThread]: Project loading failed for the following reason:
+Runtime Error
+  at path []: Additional properties are not allowed ('docs' was unexpected)
+
+Error encountered in /Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/dbt_project.yml
+
+
+[0m16:26:55.850458 [info ] [MainThread]: dbt was unable to connect to the specified database.
+The database returned the following error:
+
+  >Runtime Error
+  Database Error
+    unable to open database file
+
+Check your database credentials and try again. For more information, visit:
+https://docs.getdbt.com/docs/configure-your-profile
+
+
+[0m16:26:55.852373 [debug] [MainThread]: Resource report: {"command_name": "debug", "command_success": false, "command_wall_clock_time": 0.26092324, "process_in_blocks": "0", "process_kernel_time": 0.185697, "process_mem_max_rss": "108986368", "process_out_blocks": "0", "process_user_time": 0.909951}
+[0m16:26:55.852648 [debug] [MainThread]: Command `dbt debug` failed at 16:26:55.852596 after 0.26 seconds
+[0m16:26:55.852868 [debug] [MainThread]: Connection 'debug' was properly closed.
+[0m16:26:55.853094 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1063d60d0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1180a8370>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1180df820>]}
+[0m16:26:55.853401 [debug] [MainThread]: Flushing usage events
+[0m16:26:56.171841 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m16:28:00.643726 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1064f9100>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x110881310>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x110881fa0>]}
+
+
+============================== 16:28:00.646229 | 6a403895-9075-4a8d-8d1a-c1200079cb09 ==============================
+[0m16:28:00.646229 [info ] [MainThread]: Running with dbt=1.10.15
+[0m16:28:00.646610 [debug] [MainThread]: running dbt with arguments {'cache_selected_only': 'False', 'printer_width': '80', 'log_cache_events': 'False', 'debug': 'False', 'target_path': 'None', 'introspect': 'True', 'partial_parse': 'True', 'profiles_dir': '.', 'warn_error': 'None', 'log_format': 'default', 'send_anonymous_usage_stats': 'True', 'version_check': 'True', 'quiet': 'False', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'use_experimental_parser': 'False', 'fail_fast': 'False', 'no_print': 'None', 'use_colors': 'True', 'indirect_selection': 'eager', 'write_json': 'True', 'empty': 'None', 'static_parser': 'True', 'invocation_command': 'dbt debug --profiles-dir .', 'log_path': '/Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/logs'}
+[0m16:28:00.652156 [info ] [MainThread]: dbt version: 1.10.15
+[0m16:28:00.652403 [info ] [MainThread]: python version: 3.9.13
+[0m16:28:00.652696 [info ] [MainThread]: python path: /Users/calebsherman/.pyenv/versions/3.9.13/bin/python
+[0m16:28:00.652960 [info ] [MainThread]: os info: macOS-15.7.1-arm64-arm-64bit
+[0m16:28:00.666989 [info ] [MainThread]: Using profiles dir at .
+[0m16:28:00.667342 [info ] [MainThread]: Using profiles.yml file at ./profiles.yml
+[0m16:28:00.667540 [info ] [MainThread]: Using dbt_project.yml file at /Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/dbt_project.yml
+[0m16:28:00.667844 [info ] [MainThread]: adapter type: sqlite
+[0m16:28:00.668044 [info ] [MainThread]: adapter version: 1.10.0
+[0m16:28:00.733245 [info ] [MainThread]: Configuration:
+[0m16:28:00.733649 [info ] [MainThread]:   profiles.yml file [[32mOK found and valid[0m]
+[0m16:28:00.733862 [info ] [MainThread]:   dbt_project.yml file [[32mOK found and valid[0m]
+[0m16:28:00.734051 [info ] [MainThread]: Required dependencies:
+[0m16:28:00.734341 [debug] [MainThread]: Executing "git --help"
+[0m16:28:00.749522 [debug] [MainThread]: STDOUT: "b"usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]\n           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]\n           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--no-lazy-fetch]\n           [--no-optional-locks] [--no-advice] [--bare] [--git-dir=<path>]\n           [--work-tree=<path>] [--namespace=<name>] [--config-env=<name>=<envvar>]\n           <command> [<args>]\n\nThese are common Git commands used in various situations:\n\nstart a working area (see also: git help tutorial)\n   clone      Clone a repository into a new directory\n   init       Create an empty Git repository or reinitialize an existing one\n\nwork on the current change (see also: git help everyday)\n   add        Add file contents to the index\n   mv         Move or rename a file, a directory, or a symlink\n   restore    Restore working tree files\n   rm         Remove files from the working tree and from the index\n\nexamine the history and state (see also: git help revisions)\n   bisect     Use binary search to find the commit that introduced a bug\n   diff       Show changes between commits, commit and working tree, etc\n   grep       Print lines matching a pattern\n   log        Show commit logs\n   show       Show various types of objects\n   status     Show the working tree status\n\ngrow, mark and tweak your common history\n   backfill   Download missing objects in a partial clone\n   branch     List, create, or delete branches\n   commit     Record changes to the repository\n   merge      Join two or more development histories together\n   rebase     Reapply commits on top of another base tip\n   reset      Reset current HEAD to the specified state\n   switch     Switch branches\n   tag        Create, list, delete or verify a tag object signed with GPG\n\ncollaborate (see also: git help workflows)\n   fetch      Download objects and refs from another repository\n   pull       Fetch from and integrate with another repository or a local branch\n   push       Update remote refs along with associated objects\n\n'git help -a' and 'git help -g' list available subcommands and some\nconcept guides. See 'git help <command>' or 'git help <concept>'\nto read about a specific subcommand or concept.\nSee 'git help git' for an overview of the system.\n""
+[0m16:28:00.750342 [debug] [MainThread]: STDERR: "b''"
+[0m16:28:00.750678 [info ] [MainThread]:  - git [[32mOK found[0m]
+
+[0m16:28:00.750933 [info ] [MainThread]: Connection:
+[0m16:28:00.751193 [info ] [MainThread]:   database: nfl_qb_analysis
+[0m16:28:00.751384 [info ] [MainThread]:   schema: main
+[0m16:28:00.751584 [info ] [MainThread]:   schemas_and_paths: {'main': 'Users/calebsherman/projects/other/nfl-qb-personnel-analysis/data/analytics/nfl_qb_analysis.db'}
+[0m16:28:00.751783 [info ] [MainThread]:   schema_directory: Users/calebsherman/projects/other/nfl-qb-personnel-analysis/data/analytics
+[0m16:28:00.752240 [info ] [MainThread]: Registered adapter: sqlite=1.10.0
+[0m16:28:00.814358 [debug] [MainThread]: Acquiring new sqlite connection 'debug'
+[0m16:28:00.845213 [debug] [MainThread]: Using sqlite connection "debug"
+[0m16:28:00.845497 [debug] [MainThread]: On debug: select 1 as id
+[0m16:28:00.845690 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m16:28:00.847679 [warn ] [MainThread]: [AdapterEventDebug]: Unable to parse logging event dictionary. Failed to parse args field: Value unable to open database file has unexpected type <class 'sqlite3.OperationalError'> at AdapterEventDebug.args[0].. Dictionary: {'name': 'SQLite', 'base_msg': "Got an error when attempting to open a sqlite3 connection: '%s'", 'args': [OperationalError('unable to open database file')], 'node_info': {}}
+[0m16:28:00.847930 [debug] [MainThread]:  adapter: 
+[0m16:28:00.848173 [debug] [MainThread]: SQLite adapter: Error running SQL: select 1 as id
+[0m16:28:00.848358 [debug] [MainThread]: SQLite adapter: Rolling back transaction.
+[0m16:28:00.848536 [debug] [MainThread]: On debug: No close available on handle
+[0m16:28:00.848782 [info ] [MainThread]:   Connection test: [[31mERROR[0m]
+
+[0m16:28:00.848983 [info ] [MainThread]: [31m1 check failed:[0m
+[0m16:28:00.849171 [info ] [MainThread]: dbt was unable to connect to the specified database.
+The database returned the following error:
+
+  >Runtime Error
+  Database Error
+    unable to open database file
+
+Check your database credentials and try again. For more information, visit:
+https://docs.getdbt.com/docs/configure-your-profile
+
+
+[0m16:28:00.850586 [debug] [MainThread]: Resource report: {"command_name": "debug", "command_success": false, "command_wall_clock_time": 0.26301467, "process_in_blocks": "0", "process_kernel_time": 0.161022, "process_mem_max_rss": "110624768", "process_out_blocks": "0", "process_user_time": 0.924433}
+[0m16:28:00.850864 [debug] [MainThread]: Command `dbt debug` failed at 16:28:00.850809 after 0.26 seconds
+[0m16:28:00.851076 [debug] [MainThread]: Connection 'debug' was properly closed.
+[0m16:28:00.851302 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1064f9100>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x110c7c070>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x10678cd60>]}
+[0m16:28:00.851588 [debug] [MainThread]: Flushing usage events
+[0m16:28:01.113238 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m16:32:03.911666 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1190ba0d0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x11c735a30>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x11c735520>]}
+
+
+============================== 16:32:03.914400 | 9b84b5aa-051e-4f2b-a3b6-7c0b8f50dd0e ==============================
+[0m16:32:03.914400 [info ] [MainThread]: Running with dbt=1.10.15
+[0m16:32:03.914787 [debug] [MainThread]: running dbt with arguments {'no_print': 'None', 'send_anonymous_usage_stats': 'True', 'profiles_dir': '.', 'quiet': 'False', 'partial_parse': 'True', 'log_path': '/Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/logs', 'warn_error': 'None', 'write_json': 'True', 'target_path': 'None', 'log_cache_events': 'False', 'printer_width': '80', 'static_parser': 'True', 'version_check': 'True', 'empty': 'None', 'cache_selected_only': 'False', 'introspect': 'True', 'invocation_command': 'dbt debug --profiles-dir .', 'log_format': 'default', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'use_experimental_parser': 'False', 'fail_fast': 'False', 'indirect_selection': 'eager', 'use_colors': 'True', 'debug': 'False'}
+[0m16:32:03.920397 [info ] [MainThread]: dbt version: 1.10.15
+[0m16:32:03.920646 [info ] [MainThread]: python version: 3.9.13
+[0m16:32:03.921088 [info ] [MainThread]: python path: /Users/calebsherman/.pyenv/versions/3.9.13/bin/python
+[0m16:32:03.921330 [info ] [MainThread]: os info: macOS-15.7.1-arm64-arm-64bit
+[0m16:32:03.934679 [info ] [MainThread]: Using profiles dir at .
+[0m16:32:03.934984 [info ] [MainThread]: Using profiles.yml file at ./profiles.yml
+[0m16:32:03.935178 [info ] [MainThread]: Using dbt_project.yml file at /Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/dbt_project.yml
+[0m16:32:03.935493 [info ] [MainThread]: adapter type: sqlite
+[0m16:32:03.935682 [info ] [MainThread]: adapter version: 1.10.0
+[0m16:32:04.002932 [info ] [MainThread]: Configuration:
+[0m16:32:04.003368 [info ] [MainThread]:   profiles.yml file [[32mOK found and valid[0m]
+[0m16:32:04.003576 [info ] [MainThread]:   dbt_project.yml file [[32mOK found and valid[0m]
+[0m16:32:04.003768 [info ] [MainThread]: Required dependencies:
+[0m16:32:04.004040 [debug] [MainThread]: Executing "git --help"
+[0m16:32:04.020104 [debug] [MainThread]: STDOUT: "b"usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]\n           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]\n           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--no-lazy-fetch]\n           [--no-optional-locks] [--no-advice] [--bare] [--git-dir=<path>]\n           [--work-tree=<path>] [--namespace=<name>] [--config-env=<name>=<envvar>]\n           <command> [<args>]\n\nThese are common Git commands used in various situations:\n\nstart a working area (see also: git help tutorial)\n   clone      Clone a repository into a new directory\n   init       Create an empty Git repository or reinitialize an existing one\n\nwork on the current change (see also: git help everyday)\n   add        Add file contents to the index\n   mv         Move or rename a file, a directory, or a symlink\n   restore    Restore working tree files\n   rm         Remove files from the working tree and from the index\n\nexamine the history and state (see also: git help revisions)\n   bisect     Use binary search to find the commit that introduced a bug\n   diff       Show changes between commits, commit and working tree, etc\n   grep       Print lines matching a pattern\n   log        Show commit logs\n   show       Show various types of objects\n   status     Show the working tree status\n\ngrow, mark and tweak your common history\n   backfill   Download missing objects in a partial clone\n   branch     List, create, or delete branches\n   commit     Record changes to the repository\n   merge      Join two or more development histories together\n   rebase     Reapply commits on top of another base tip\n   reset      Reset current HEAD to the specified state\n   switch     Switch branches\n   tag        Create, list, delete or verify a tag object signed with GPG\n\ncollaborate (see also: git help workflows)\n   fetch      Download objects and refs from another repository\n   pull       Fetch from and integrate with another repository or a local branch\n   push       Update remote refs along with associated objects\n\n'git help -a' and 'git help -g' list available subcommands and some\nconcept guides. See 'git help <command>' or 'git help <concept>'\nto read about a specific subcommand or concept.\nSee 'git help git' for an overview of the system.\n""
+[0m16:32:04.020759 [debug] [MainThread]: STDERR: "b''"
+[0m16:32:04.021056 [info ] [MainThread]:  - git [[32mOK found[0m]
+
+[0m16:32:04.021367 [info ] [MainThread]: Connection:
+[0m16:32:04.021705 [info ] [MainThread]:   database: nfl_qb_analysis
+[0m16:32:04.021996 [info ] [MainThread]:   schema: main
+[0m16:32:04.022213 [info ] [MainThread]:   schemas_and_paths: {'main': '/Users/calebsherman/projects/other/nfl-qb-personnell-analysis/data/analytics/nfl_qb_analysis.db'}
+[0m16:32:04.022421 [info ] [MainThread]:   schema_directory: /Users/calebsherman/projects/other/nfl-qb-personnell-analysis/data/analytics
+[0m16:32:04.022845 [info ] [MainThread]: Registered adapter: sqlite=1.10.0
+[0m16:32:04.084254 [debug] [MainThread]: Acquiring new sqlite connection 'debug'
+[0m16:32:04.113192 [debug] [MainThread]: Using sqlite connection "debug"
+[0m16:32:04.113472 [debug] [MainThread]: On debug: select 1 as id
+[0m16:32:04.113662 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m16:32:04.116029 [debug] [MainThread]: SQL status: OK in 0.002 seconds
+[0m16:32:04.116565 [debug] [MainThread]: On debug: Close
+[0m16:32:04.116803 [info ] [MainThread]:   Connection test: [[32mOK connection ok[0m]
+
+[0m16:32:04.117025 [info ] [MainThread]: [32mAll checks passed![0m
+[0m16:32:04.118373 [debug] [MainThread]: Resource report: {"command_name": "debug", "command_success": true, "command_wall_clock_time": 0.26241866, "process_in_blocks": "0", "process_kernel_time": 0.168153, "process_mem_max_rss": "111738880", "process_out_blocks": "0", "process_user_time": 0.948394}
+[0m16:32:04.118654 [debug] [MainThread]: Command `dbt debug` succeeded at 16:32:04.118598 after 0.26 seconds
+[0m16:32:04.118871 [debug] [MainThread]: Connection 'debug' was properly closed.
+[0m16:32:04.119090 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1190ba0d0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x11d013430>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x11c6ee2b0>]}
+[0m16:32:04.119350 [debug] [MainThread]: Flushing usage events
+[0m16:32:04.481764 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m16:32:12.748288 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1060c8130>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x107281280>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x107281a60>]}
+
+
+============================== 16:32:12.750720 | 549e5747-a03b-43ee-9ef7-14b9cb142c69 ==============================
+[0m16:32:12.750720 [info ] [MainThread]: Running with dbt=1.10.15
+[0m16:32:12.751089 [debug] [MainThread]: running dbt with arguments {'fail_fast': 'False', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'log_cache_events': 'False', 'write_json': 'True', 'log_path': '/Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/logs', 'introspect': 'True', 'static_parser': 'True', 'empty': 'None', 'indirect_selection': 'eager', 'printer_width': '80', 'warn_error': 'None', 'partial_parse': 'True', 'use_colors': 'True', 'cache_selected_only': 'False', 'quiet': 'False', 'version_check': 'True', 'invocation_command': 'dbt debug --profiles-dir .', 'send_anonymous_usage_stats': 'True', 'no_print': 'None', 'target_path': 'None', 'log_format': 'default', 'debug': 'False', 'use_experimental_parser': 'False', 'profiles_dir': '.'}
+[0m16:32:12.756445 [info ] [MainThread]: dbt version: 1.10.15
+[0m16:32:12.756766 [info ] [MainThread]: python version: 3.9.13
+[0m16:32:12.757038 [info ] [MainThread]: python path: /Users/calebsherman/.pyenv/versions/3.9.13/bin/python
+[0m16:32:12.757393 [info ] [MainThread]: os info: macOS-15.7.1-arm64-arm-64bit
+[0m16:32:12.772543 [info ] [MainThread]: Using profiles dir at .
+[0m16:32:12.772946 [info ] [MainThread]: Using profiles.yml file at ./profiles.yml
+[0m16:32:12.773159 [info ] [MainThread]: Using dbt_project.yml file at /Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/dbt_project.yml
+[0m16:32:12.773487 [info ] [MainThread]: adapter type: sqlite
+[0m16:32:12.773690 [info ] [MainThread]: adapter version: 1.10.0
+[0m16:32:12.814245 [info ] [MainThread]: Configuration:
+[0m16:32:12.814616 [info ] [MainThread]:   profiles.yml file [[32mOK found and valid[0m]
+[0m16:32:12.814810 [info ] [MainThread]:   dbt_project.yml file [[31mERROR invalid[0m]
+[0m16:32:12.814991 [info ] [MainThread]: Required dependencies:
+[0m16:32:12.815258 [debug] [MainThread]: Executing "git --help"
+[0m16:32:12.830733 [debug] [MainThread]: STDOUT: "b"usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]\n           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]\n           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--no-lazy-fetch]\n           [--no-optional-locks] [--no-advice] [--bare] [--git-dir=<path>]\n           [--work-tree=<path>] [--namespace=<name>] [--config-env=<name>=<envvar>]\n           <command> [<args>]\n\nThese are common Git commands used in various situations:\n\nstart a working area (see also: git help tutorial)\n   clone      Clone a repository into a new directory\n   init       Create an empty Git repository or reinitialize an existing one\n\nwork on the current change (see also: git help everyday)\n   add        Add file contents to the index\n   mv         Move or rename a file, a directory, or a symlink\n   restore    Restore working tree files\n   rm         Remove files from the working tree and from the index\n\nexamine the history and state (see also: git help revisions)\n   bisect     Use binary search to find the commit that introduced a bug\n   diff       Show changes between commits, commit and working tree, etc\n   grep       Print lines matching a pattern\n   log        Show commit logs\n   show       Show various types of objects\n   status     Show the working tree status\n\ngrow, mark and tweak your common history\n   backfill   Download missing objects in a partial clone\n   branch     List, create, or delete branches\n   commit     Record changes to the repository\n   merge      Join two or more development histories together\n   rebase     Reapply commits on top of another base tip\n   reset      Reset current HEAD to the specified state\n   switch     Switch branches\n   tag        Create, list, delete or verify a tag object signed with GPG\n\ncollaborate (see also: git help workflows)\n   fetch      Download objects and refs from another repository\n   pull       Fetch from and integrate with another repository or a local branch\n   push       Update remote refs along with associated objects\n\n'git help -a' and 'git help -g' list available subcommands and some\nconcept guides. See 'git help <command>' or 'git help <concept>'\nto read about a specific subcommand or concept.\nSee 'git help git' for an overview of the system.\n""
+[0m16:32:12.831390 [debug] [MainThread]: STDERR: "b''"
+[0m16:32:12.831664 [info ] [MainThread]:  - git [[32mOK found[0m]
+
+[0m16:32:12.831892 [info ] [MainThread]: Connection:
+[0m16:32:12.832122 [info ] [MainThread]:   database: nfl_qb_analysis
+[0m16:32:12.832310 [info ] [MainThread]:   schema: main
+[0m16:32:12.832496 [info ] [MainThread]:   schemas_and_paths: {'main': '/Users/calebsherman/projects/other/nfl-qb-personnell-analysis/data/analytics/nfl_qb_analysis.db'}
+[0m16:32:12.832693 [info ] [MainThread]:   schema_directory: /Users/calebsherman/projects/other/nfl-qb-personnell-analysis/data/analytics
+[0m16:32:12.833128 [info ] [MainThread]: Registered adapter: sqlite=1.10.0
+[0m16:32:12.896269 [debug] [MainThread]: Acquiring new sqlite connection 'debug'
+[0m16:32:12.922154 [debug] [MainThread]: Using sqlite connection "debug"
+[0m16:32:12.922472 [debug] [MainThread]: On debug: select 1 as id
+[0m16:32:12.922666 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m16:32:12.924829 [debug] [MainThread]: SQL status: OK in 0.002 seconds
+[0m16:32:12.925371 [debug] [MainThread]: On debug: Close
+[0m16:32:12.925623 [info ] [MainThread]:   Connection test: [[32mOK connection ok[0m]
+
+[0m16:32:12.925849 [info ] [MainThread]: [31m1 check failed:[0m
+[0m16:32:12.926045 [info ] [MainThread]: Project loading failed for the following reason:
+Runtime Error
+  at path []: Additional properties are not allowed ('docs' was unexpected)
+
+Error encountered in /Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/dbt_project.yml
+
+
+[0m16:32:12.927414 [debug] [MainThread]: Resource report: {"command_name": "debug", "command_success": false, "command_wall_clock_time": 0.23588508, "process_in_blocks": "0", "process_kernel_time": 0.145254, "process_mem_max_rss": "110231552", "process_out_blocks": "0", "process_user_time": 0.90114}
+[0m16:32:12.927696 [debug] [MainThread]: Command `dbt debug` failed at 16:32:12.927641 after 0.24 seconds
+[0m16:32:12.927915 [debug] [MainThread]: Connection 'debug' was properly closed.
+[0m16:32:12.928132 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1060c8130>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1073b1c10>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1073a7610>]}
+[0m16:32:12.928390 [debug] [MainThread]: Flushing usage events
+[0m16:32:13.119367 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m16:32:22.424232 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x104438130>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1057c1280>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1057c1a60>]}
+
+
+============================== 16:32:22.426898 | 54aaf493-d979-4db4-beda-0687f838c844 ==============================
+[0m16:32:22.426898 [info ] [MainThread]: Running with dbt=1.10.15
+[0m16:32:22.427297 [debug] [MainThread]: running dbt with arguments {'profiles_dir': '.', 'empty': 'None', 'introspect': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'log_format': 'default', 'write_json': 'True', 'invocation_command': 'dbt debug --profiles-dir .', 'partial_parse': 'True', 'version_check': 'True', 'log_path': '/Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/logs', 'target_path': 'None', 'fail_fast': 'False', 'printer_width': '80', 'use_experimental_parser': 'False', 'no_print': 'None', 'debug': 'False', 'quiet': 'False', 'send_anonymous_usage_stats': 'True', 'indirect_selection': 'eager', 'use_colors': 'True', 'cache_selected_only': 'False', 'static_parser': 'True', 'warn_error': 'None', 'log_cache_events': 'False'}
+[0m16:32:22.433015 [info ] [MainThread]: dbt version: 1.10.15
+[0m16:32:22.433313 [info ] [MainThread]: python version: 3.9.13
+[0m16:32:22.433601 [info ] [MainThread]: python path: /Users/calebsherman/.pyenv/versions/3.9.13/bin/python
+[0m16:32:22.433833 [info ] [MainThread]: os info: macOS-15.7.1-arm64-arm-64bit
+[0m16:32:22.447426 [info ] [MainThread]: Using profiles dir at .
+[0m16:32:22.447756 [info ] [MainThread]: Using profiles.yml file at ./profiles.yml
+[0m16:32:22.447952 [info ] [MainThread]: Using dbt_project.yml file at /Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/dbt_project.yml
+[0m16:32:22.448238 [info ] [MainThread]: adapter type: sqlite
+[0m16:32:22.448422 [info ] [MainThread]: adapter version: 1.10.0
+[0m16:32:22.516285 [info ] [MainThread]: Configuration:
+[0m16:32:22.516704 [info ] [MainThread]:   profiles.yml file [[32mOK found and valid[0m]
+[0m16:32:22.516975 [info ] [MainThread]:   dbt_project.yml file [[32mOK found and valid[0m]
+[0m16:32:22.517175 [info ] [MainThread]: Required dependencies:
+[0m16:32:22.517456 [debug] [MainThread]: Executing "git --help"
+[0m16:32:22.531603 [debug] [MainThread]: STDOUT: "b"usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]\n           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]\n           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--no-lazy-fetch]\n           [--no-optional-locks] [--no-advice] [--bare] [--git-dir=<path>]\n           [--work-tree=<path>] [--namespace=<name>] [--config-env=<name>=<envvar>]\n           <command> [<args>]\n\nThese are common Git commands used in various situations:\n\nstart a working area (see also: git help tutorial)\n   clone      Clone a repository into a new directory\n   init       Create an empty Git repository or reinitialize an existing one\n\nwork on the current change (see also: git help everyday)\n   add        Add file contents to the index\n   mv         Move or rename a file, a directory, or a symlink\n   restore    Restore working tree files\n   rm         Remove files from the working tree and from the index\n\nexamine the history and state (see also: git help revisions)\n   bisect     Use binary search to find the commit that introduced a bug\n   diff       Show changes between commits, commit and working tree, etc\n   grep       Print lines matching a pattern\n   log        Show commit logs\n   show       Show various types of objects\n   status     Show the working tree status\n\ngrow, mark and tweak your common history\n   backfill   Download missing objects in a partial clone\n   branch     List, create, or delete branches\n   commit     Record changes to the repository\n   merge      Join two or more development histories together\n   rebase     Reapply commits on top of another base tip\n   reset      Reset current HEAD to the specified state\n   switch     Switch branches\n   tag        Create, list, delete or verify a tag object signed with GPG\n\ncollaborate (see also: git help workflows)\n   fetch      Download objects and refs from another repository\n   pull       Fetch from and integrate with another repository or a local branch\n   push       Update remote refs along with associated objects\n\n'git help -a' and 'git help -g' list available subcommands and some\nconcept guides. See 'git help <command>' or 'git help <concept>'\nto read about a specific subcommand or concept.\nSee 'git help git' for an overview of the system.\n""
+[0m16:32:22.532316 [debug] [MainThread]: STDERR: "b''"
+[0m16:32:22.532577 [info ] [MainThread]:  - git [[32mOK found[0m]
+
+[0m16:32:22.533099 [info ] [MainThread]: Connection:
+[0m16:32:22.533355 [info ] [MainThread]:   database: nfl_qb_analysis
+[0m16:32:22.533538 [info ] [MainThread]:   schema: main
+[0m16:32:22.533730 [info ] [MainThread]:   schemas_and_paths: {'main': '/Users/calebsherman/projects/other/nfl-qb-personnell-analysis/data/analytics/nfl_qb_analysis.db'}
+[0m16:32:22.533911 [info ] [MainThread]:   schema_directory: /Users/calebsherman/projects/other/nfl-qb-personnell-analysis/data/analytics
+[0m16:32:22.534349 [info ] [MainThread]: Registered adapter: sqlite=1.10.0
+[0m16:32:22.597825 [debug] [MainThread]: Acquiring new sqlite connection 'debug'
+[0m16:32:22.624381 [debug] [MainThread]: Using sqlite connection "debug"
+[0m16:32:22.624675 [debug] [MainThread]: On debug: select 1 as id
+[0m16:32:22.624869 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m16:32:22.627923 [debug] [MainThread]: SQL status: OK in 0.003 seconds
+[0m16:32:22.628585 [debug] [MainThread]: On debug: Close
+[0m16:32:22.628851 [info ] [MainThread]:   Connection test: [[32mOK connection ok[0m]
+
+[0m16:32:22.629075 [info ] [MainThread]: [32mAll checks passed![0m
+[0m16:32:22.630572 [debug] [MainThread]: Resource report: {"command_name": "debug", "command_success": true, "command_wall_clock_time": 0.26432222, "process_in_blocks": "0", "process_kernel_time": 0.159215, "process_mem_max_rss": "111411200", "process_out_blocks": "0", "process_user_time": 0.948157}
+[0m16:32:22.630888 [debug] [MainThread]: Command `dbt debug` succeeded at 16:32:22.630829 after 0.26 seconds
+[0m16:32:22.631171 [debug] [MainThread]: Connection 'debug' was properly closed.
+[0m16:32:22.631400 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x104438130>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1057c1c70>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1059beee0>]}
+[0m16:32:22.631672 [debug] [MainThread]: Flushing usage events
+[0m16:32:22.826773 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m16:32:37.811653 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x104d390d0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1070c2220>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1070c2a00>]}
+
+
+============================== 16:32:37.814299 | 7e852ea6-1b06-4f94-a28b-487c4b98626f ==============================
+[0m16:32:37.814299 [info ] [MainThread]: Running with dbt=1.10.15
+[0m16:32:37.814685 [debug] [MainThread]: running dbt with arguments {'invocation_command': 'dbt run --profiles-dir .', 'version_check': 'True', 'send_anonymous_usage_stats': 'True', 'cache_selected_only': 'False', 'fail_fast': 'False', 'profiles_dir': '.', 'printer_width': '80', 'use_colors': 'True', 'target_path': 'None', 'write_json': 'True', 'partial_parse': 'True', 'warn_error': 'None', 'log_cache_events': 'False', 'indirect_selection': 'eager', 'log_format': 'default', 'log_path': '/Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/logs', 'empty': 'False', 'static_parser': 'True', 'introspect': 'True', 'use_experimental_parser': 'False', 'debug': 'False', 'quiet': 'False', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'no_print': 'None'}
+[0m16:32:37.923265 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '7e852ea6-1b06-4f94-a28b-487c4b98626f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x107121a00>]}
+[0m16:32:37.959170 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '7e852ea6-1b06-4f94-a28b-487c4b98626f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x107079820>]}
+[0m16:32:37.959804 [info ] [MainThread]: Registered adapter: sqlite=1.10.0
+[0m16:32:38.029035 [debug] [MainThread]: checksum: 14a228079bd6df63ba81633f9a3cf44ecfaa31056ac397c602753ec895dbf885, vars: {}, profile: , target: , version: 1.10.15
+[0m16:32:38.029718 [info ] [MainThread]: Unable to do partial parsing because saved manifest not found. Starting full parse.
+[0m16:32:38.030001 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'partial_parser', 'label': '7e852ea6-1b06-4f94-a28b-487c4b98626f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1073c9b50>]}
+[0m16:32:38.671941 [warn ] [MainThread]: [[33mWARNING[0m][MissingArgumentsPropertyInGenericTestDeprecation]: Deprecated
+functionality
+Found top-level arguments to test `accepted_values`. Arguments to generic tests
+should be nested under the `arguments` property.`
+[0m16:32:38.672357 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'deprecation', 'label': '7e852ea6-1b06-4f94-a28b-487c4b98626f', 'property_': 'warn', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1103d30a0>]}
+[0m16:32:38.754561 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 1 unused configuration paths:
+- seeds.nfl_qb_personnel
+[0m16:32:38.758143 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '7e852ea6-1b06-4f94-a28b-487c4b98626f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x11045d130>]}
+[0m16:32:38.846044 [debug] [MainThread]: Wrote artifact WritableManifest to /Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/target/manifest.json
+[0m16:32:38.847493 [debug] [MainThread]: Wrote artifact SemanticManifest to /Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/target/semantic_manifest.json
+[0m16:32:38.856731 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': '7e852ea6-1b06-4f94-a28b-487c4b98626f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1103f4af0>]}
+[0m16:32:38.857079 [info ] [MainThread]: Found 5 models, 19 data tests, 416 macros
+[0m16:32:38.857310 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '7e852ea6-1b06-4f94-a28b-487c4b98626f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1035a51c0>]}
+[0m16:32:38.858270 [info ] [MainThread]: 
+[0m16:32:38.858496 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m16:32:38.858694 [info ] [MainThread]: 
+[0m16:32:38.859002 [debug] [MainThread]: Acquiring new sqlite connection 'master'
+[0m16:32:38.862348 [debug] [ThreadPool]: Acquiring new sqlite connection 'list_nfl_qb_analysis'
+[0m16:32:38.899108 [debug] [ThreadPool]: Using sqlite connection "list_nfl_qb_analysis"
+[0m16:32:38.899439 [debug] [ThreadPool]: On list_nfl_qb_analysis: BEGIN
+[0m16:32:38.899632 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m16:32:38.901842 [debug] [ThreadPool]: SQL status: OK in 0.002 seconds
+[0m16:32:38.902070 [debug] [ThreadPool]: Using sqlite connection "list_nfl_qb_analysis"
+[0m16:32:38.902263 [debug] [ThreadPool]: On list_nfl_qb_analysis: /* {"app": "dbt", "dbt_version": "1.10.15", "profile_name": "nfl_qb_personnel", "target_name": "dev", "connection_name": "list_nfl_qb_analysis"} */
+
+        pragma database_list
+    
+[0m16:32:38.902459 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m16:32:38.903191 [debug] [ThreadPool]: On list_nfl_qb_analysis: ROLLBACK
+[0m16:32:38.903394 [debug] [ThreadPool]: On list_nfl_qb_analysis: Close
+[0m16:32:38.904234 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_nfl_qb_analysis, now list_nfl_qb_analysis_main)
+[0m16:32:38.909140 [debug] [ThreadPool]: Using sqlite connection "list_nfl_qb_analysis_main"
+[0m16:32:38.909358 [debug] [ThreadPool]: On list_nfl_qb_analysis_main: BEGIN
+[0m16:32:38.909538 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m16:32:38.909861 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m16:32:38.910043 [debug] [ThreadPool]: Using sqlite connection "list_nfl_qb_analysis_main"
+[0m16:32:38.910220 [debug] [ThreadPool]: On list_nfl_qb_analysis_main: /* {"app": "dbt", "dbt_version": "1.10.15", "profile_name": "nfl_qb_personnel", "target_name": "dev", "connection_name": "list_nfl_qb_analysis_main"} */
+
+        pragma database_list
+    
+[0m16:32:38.910415 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m16:32:38.911126 [debug] [ThreadPool]: Using sqlite connection "list_nfl_qb_analysis_main"
+[0m16:32:38.911325 [debug] [ThreadPool]: On list_nfl_qb_analysis_main: /* {"app": "dbt", "dbt_version": "1.10.15", "profile_name": "nfl_qb_personnel", "target_name": "dev", "connection_name": "list_nfl_qb_analysis_main"} */
+
+            SELECT
+                'nfl_qb_analysis' as database
+                ,name
+                ,'main' AS schema
+                ,type as data_type
+            FROM
+                main.sqlite_master
+            WHERE
+                name NOT LIKE 'sqlite_%'
+        
+[0m16:32:38.911610 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m16:32:38.912201 [debug] [ThreadPool]: On list_nfl_qb_analysis_main: ROLLBACK
+[0m16:32:38.912398 [debug] [ThreadPool]: On list_nfl_qb_analysis_main: Close
+[0m16:32:38.912827 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '7e852ea6-1b06-4f94-a28b-487c4b98626f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1035a51c0>]}
+[0m16:32:38.913122 [debug] [MainThread]: Using sqlite connection "master"
+[0m16:32:38.913307 [debug] [MainThread]: On master: BEGIN
+[0m16:32:38.913480 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m16:32:38.913790 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m16:32:38.913970 [debug] [MainThread]: On master: COMMIT
+[0m16:32:38.914148 [debug] [MainThread]: Using sqlite connection "master"
+[0m16:32:38.914317 [debug] [MainThread]: On master: COMMIT
+[0m16:32:38.914492 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m16:32:38.914666 [debug] [MainThread]: On master: Close
+[0m16:32:38.917076 [debug] [Thread-1  ]: Began running node model.nfl_qb_personnel.dim_qbs
+[0m16:32:38.917352 [debug] [Thread-2  ]: Began running node model.nfl_qb_personnel.stg_qb_plays
+[0m16:32:38.917654 [info ] [Thread-1  ]: 1 of 4 START sql table model main.dim_qbs ...................................... [RUN]
+[0m16:32:38.917972 [info ] [Thread-2  ]: 2 of 4 START sql view model main.stg_qb_plays .................................. [RUN]
+[0m16:32:38.918252 [debug] [Thread-1  ]: Re-using an available connection from the pool (formerly list_nfl_qb_analysis_main, now model.nfl_qb_personnel.dim_qbs)
+[0m16:32:38.918536 [debug] [Thread-2  ]: Acquiring new sqlite connection 'model.nfl_qb_personnel.stg_qb_plays'
+[0m16:32:38.918761 [debug] [Thread-1  ]: Began compiling node model.nfl_qb_personnel.dim_qbs
+[0m16:32:38.918971 [debug] [Thread-2  ]: Began compiling node model.nfl_qb_personnel.stg_qb_plays
+[0m16:32:38.926245 [debug] [Thread-2  ]: Writing injected SQL for node "model.nfl_qb_personnel.stg_qb_plays"
+[0m16:32:38.927233 [debug] [Thread-1  ]: Writing injected SQL for node "model.nfl_qb_personnel.dim_qbs"
+[0m16:32:38.927920 [debug] [Thread-2  ]: Began executing node model.nfl_qb_personnel.stg_qb_plays
+[0m16:32:38.934542 [debug] [Thread-1  ]: Began executing node model.nfl_qb_personnel.dim_qbs
+[0m16:32:38.937770 [debug] [Thread-2  ]: Writing runtime sql for node "model.nfl_qb_personnel.stg_qb_plays"
+[0m16:32:38.946463 [debug] [Thread-1  ]: Writing runtime sql for node "model.nfl_qb_personnel.dim_qbs"
+[0m16:32:38.947267 [debug] [Thread-2  ]: Using sqlite connection "model.nfl_qb_personnel.stg_qb_plays"
+[0m16:32:38.947512 [debug] [Thread-2  ]: On model.nfl_qb_personnel.stg_qb_plays: BEGIN
+[0m16:32:38.947749 [debug] [Thread-1  ]: Using sqlite connection "model.nfl_qb_personnel.dim_qbs"
+[0m16:32:38.947985 [debug] [Thread-2  ]: Opening a new connection, currently in state init
+[0m16:32:38.948212 [debug] [Thread-1  ]: On model.nfl_qb_personnel.dim_qbs: BEGIN
+[0m16:32:38.948467 [debug] [Thread-1  ]: Opening a new connection, currently in state closed
+[0m16:32:38.948777 [debug] [Thread-2  ]: SQL status: OK in 0.001 seconds
+[0m16:32:38.949017 [debug] [Thread-2  ]: Using sqlite connection "model.nfl_qb_personnel.stg_qb_plays"
+[0m16:32:38.949253 [debug] [Thread-1  ]: SQL status: OK in 0.001 seconds
+[0m16:32:38.949531 [debug] [Thread-2  ]: On model.nfl_qb_personnel.stg_qb_plays: /* {"app": "dbt", "dbt_version": "1.10.15", "profile_name": "nfl_qb_personnel", "target_name": "dev", "node_id": "model.nfl_qb_personnel.stg_qb_plays"} */
+
+    
+    create view main."stg_qb_plays" as
+    
+
+/*
+    Staging model for QB plays
+    
+    This model loads the filtered QB plays from our Spark processing
+    and applies basic cleaning and standardization.
+    
+    Source: data/processed/qb_plays_2022_2024.parquet (created by Spark)
+*/
+
+with source_data as (
+    
+    select * from qb_plays_raw
+    
+),
+
+cleaned as (
+    
+    select
+        -- Identifiers
+        game_id,
+        old_game_id,
+        play_id,
+        
+        -- QB Information
+        passer_player_id as qb_id,
+        passer_player_name as qb_name,
+        passer_id as qb_id_alt,
+        
+        -- Game Context
+        season,
+        week,
+        season_type,
+        game_date,
+        home_team,
+        away_team,
+        posteam as team,
+        defteam as opponent,
+        
+        -- Play Details
+        play_type,
+        down,
+        ydstogo as yards_to_go,
+        yardline_100 as yards_from_own_goal,
+        goal_to_go,
+        qtr as quarter,
+        
+        -- Personnel
+        offense_personnel_std as offense_personnel,
+        defense_personnel_std as defense_personnel,
+        
+        -- Performance Metrics
+        epa,
+        wpa,
+        success,
+        cpoe,
+        air_epa,
+        yac_epa,
+        
+        -- Additional Context
+        score_differential,
+        ep as expected_points,
+        wp as win_probability,
+        yards_gained
+        
+    from source_data
+    
+),
+
+final as (
+    
+    select
+        *,
+        
+        -- Create a unique play identifier
+        concat(old_game_id, '_', cast(play_id as string)) as play_key,
+        
+        -- Flag for whether this is a pass or run
+        case 
+            when play_type = 'pass' then true
+            when play_type = 'run' then true
+            else false
+        end as is_dropback,
+        
+        -- Situational flags
+        case when down = 3 then true else false end as is_third_down,
+        case when down = 4 then true else false end as is_fourth_down,
+        case when yards_to_go >= 10 then true else false end as is_long_distance,
+        case when score_differential between -8 and 8 then true else false end as is_close_game
+        
+    from cleaned
+    
+)
+
+select * from final;
+[0m16:32:38.949848 [debug] [Thread-1  ]: Using sqlite connection "model.nfl_qb_personnel.dim_qbs"
+[0m16:32:38.950161 [debug] [Thread-1  ]: On model.nfl_qb_personnel.dim_qbs: /* {"app": "dbt", "dbt_version": "1.10.15", "profile_name": "nfl_qb_personnel", "target_name": "dev", "node_id": "model.nfl_qb_personnel.dim_qbs"} */
+
+  
+    
+    
+    create  table main."dim_qbs"
+    as
+        
+
+/*
+    Dimension Table: QBs
+    
+    One row per QB with career aggregates across all personnel matchups.
+    Useful for QB comparisons and filtering in the frontend.
+    
+    Grain: One row per QB
+*/
+
+with qb_stats as (
+    
+    select * from main."fct_qb_personnel_stats"
+    
+),
+
+qb_career_stats as (
+    
+    select
+        qb_id,
+        -- Use the first non-null name found
+        max(qb_name) as qb_name,
+        
+        -- Career span
+        min(season) as first_season,
+        max(season) as last_season,
+        count(distinct season) as seasons_played,
+        
+        -- Total plays across all matchups and seasons
+        sum(play_count) as career_plays,
+        sum(pass_attempts) as career_pass_attempts,
+        sum(qb_rushes) as career_qb_rushes,
+        
+        -- Weighted averages (weighted by play count)
+        sum(epa_per_play * play_count) / sum(play_count) as career_epa_per_play,
+        sum(success_rate * play_count) / sum(play_count) as career_success_rate,
+        
+        -- Total production
+        sum(total_epa) as career_total_epa,
+        sum(total_yards) as career_total_yards,
+        
+        -- Personnel diversity
+        count(distinct personnel_matchup) as unique_matchups_faced,
+        count(distinct offense_personnel) as unique_offense_personnel,
+        count(distinct defense_personnel) as unique_defense_personnel,
+        
+        -- Best matchup
+        max(case when play_count >= 20 then epa_per_play else null end) as best_matchup_epa
+        
+    from qb_stats
+    
+    group by 1
+    
+),
+
+with_rankings as (
+    
+    select
+        *,
+        
+        -- Career EPA percentile
+        percent_rank() over (order by career_epa_per_play) as career_epa_percentile,
+        
+        -- Volume rank
+        row_number() over (order by career_plays desc) as plays_rank,
+        
+        -- Qualify as "starter" if 500+ plays
+        case when career_plays >= 500 then true else false end as is_starter
+        
+    from qb_career_stats
+    
+)
+
+select * from with_rankings
+order by career_plays desc
+
+  
+[0m16:32:38.950611 [debug] [Thread-1  ]: On model.nfl_qb_personnel.dim_qbs: ROLLBACK
+[0m16:32:38.950837 [debug] [Thread-2  ]: SQL status: OK in 0.001 seconds
+[0m16:32:38.951074 [debug] [Thread-1  ]: On model.nfl_qb_personnel.dim_qbs: Close
+[0m16:32:38.954458 [debug] [Thread-2  ]: On model.nfl_qb_personnel.stg_qb_plays: COMMIT
+[0m16:32:38.954772 [debug] [Thread-1  ]: SQLite adapter: sqlite3 error: no such table: main.fct_qb_personnel_stats
+[0m16:32:38.955011 [debug] [Thread-2  ]: Using sqlite connection "model.nfl_qb_personnel.stg_qb_plays"
+[0m16:32:38.955487 [debug] [Thread-2  ]: On model.nfl_qb_personnel.stg_qb_plays: COMMIT
+[0m16:32:38.956008 [debug] [Thread-2  ]: SQL status: OK in 0.000 seconds
+[0m16:32:38.957653 [debug] [Thread-2  ]: On model.nfl_qb_personnel.stg_qb_plays: Close
+[0m16:32:38.958886 [debug] [Thread-2  ]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '7e852ea6-1b06-4f94-a28b-487c4b98626f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1077682e0>]}
+[0m16:32:38.959290 [info ] [Thread-2  ]: 2 of 4 OK created sql view model main.stg_qb_plays ............................. [[32mOK[0m in 0.04s]
+[0m16:32:38.959693 [debug] [Thread-2  ]: Finished running node model.nfl_qb_personnel.stg_qb_plays
+[0m16:32:38.960129 [debug] [Thread-4  ]: Began running node model.nfl_qb_personnel.int_qb_personnel_plays
+[0m16:32:38.960470 [info ] [Thread-4  ]: 3 of 4 START sql view model main.int_qb_personnel_plays ........................ [RUN]
+[0m16:32:38.960858 [debug] [Thread-4  ]: Acquiring new sqlite connection 'model.nfl_qb_personnel.int_qb_personnel_plays'
+[0m16:32:38.961080 [debug] [Thread-4  ]: Began compiling node model.nfl_qb_personnel.int_qb_personnel_plays
+[0m16:32:38.963148 [debug] [Thread-4  ]: Writing injected SQL for node "model.nfl_qb_personnel.int_qb_personnel_plays"
+[0m16:32:38.963658 [debug] [Thread-4  ]: Began executing node model.nfl_qb_personnel.int_qb_personnel_plays
+[0m16:32:38.965243 [debug] [Thread-4  ]: Writing runtime sql for node "model.nfl_qb_personnel.int_qb_personnel_plays"
+[0m16:32:38.965692 [debug] [Thread-4  ]: Using sqlite connection "model.nfl_qb_personnel.int_qb_personnel_plays"
+[0m16:32:38.966019 [debug] [Thread-4  ]: On model.nfl_qb_personnel.int_qb_personnel_plays: BEGIN
+[0m16:32:38.966293 [debug] [Thread-4  ]: Opening a new connection, currently in state init
+[0m16:32:38.966766 [debug] [Thread-4  ]: SQL status: OK in 0.000 seconds
+[0m16:32:38.967072 [debug] [Thread-4  ]: Using sqlite connection "model.nfl_qb_personnel.int_qb_personnel_plays"
+[0m16:32:38.967404 [debug] [Thread-4  ]: On model.nfl_qb_personnel.int_qb_personnel_plays: /* {"app": "dbt", "dbt_version": "1.10.15", "profile_name": "nfl_qb_personnel", "target_name": "dev", "node_id": "model.nfl_qb_personnel.int_qb_personnel_plays"} */
+
+    
+    create view main."int_qb_personnel_plays" as
+    
+
+/*
+    Intermediate model: QB Personnel Plays
+    
+    Enriches the staging QB plays with:
+    - QB name handling (filling NULLs from rusher names)
+    - Personnel matchup combinations
+    - Play success categorization
+    - Situational context
+*/
+
+with qb_plays as (
+    
+    select * from main."stg_qb_plays"
+    
+),
+
+enriched as (
+    
+    select
+        -- All original columns
+        *,
+        
+        -- Create personnel matchup identifier
+        concat(offense_personnel, ' vs ', defense_personnel) as personnel_matchup,
+        
+        -- Categorize EPA performance
+        case
+            when epa >= 0.5 then 'Great'
+            when epa >= 0 then 'Good'
+            when epa >= -0.5 then 'Poor'
+            else 'Very Poor'
+        end as epa_category,
+        
+        -- Down and distance situations
+        case
+            when down = 1 then '1st Down'
+            when down = 2 and yards_to_go <= 3 then '2nd & Short'
+            when down = 2 and yards_to_go between 4 and 7 then '2nd & Medium'
+            when down = 2 and yards_to_go >= 8 then '2nd & Long'
+            when down = 3 and yards_to_go <= 3 then '3rd & Short'
+            when down = 3 and yards_to_go between 4 and 7 then '3rd & Medium'
+            when down = 3 and yards_to_go >= 8 then '3rd & Long'
+            when down = 4 then '4th Down'
+        end as down_distance_category,
+        
+        -- Field position categories
+        case
+            when yards_from_own_goal >= 80 then 'Red Zone'
+            when yards_from_own_goal >= 60 then 'Opponent Territory'
+            when yards_from_own_goal >= 40 then 'Midfield'
+            when yards_from_own_goal >= 20 then 'Own Territory'
+            else 'Own Red Zone'
+        end as field_position_category,
+        
+        -- Game situation
+        case
+            when abs(score_differential) <= 3 then 'One Score'
+            when abs(score_differential) <= 8 then 'Two Score'
+            when abs(score_differential) <= 16 then 'Three Score'
+            else 'Blowout'
+        end as game_situation
+        
+    from qb_plays
+    
+)
+
+select * from enriched;
+[0m16:32:38.968335 [debug] [Thread-4  ]: SQL status: OK in 0.000 seconds
+[0m16:32:38.969098 [debug] [Thread-4  ]: On model.nfl_qb_personnel.int_qb_personnel_plays: COMMIT
+[0m16:32:38.969341 [debug] [Thread-4  ]: Using sqlite connection "model.nfl_qb_personnel.int_qb_personnel_plays"
+[0m16:32:38.969621 [debug] [Thread-4  ]: On model.nfl_qb_personnel.int_qb_personnel_plays: COMMIT
+[0m16:32:38.970707 [debug] [Thread-1  ]: Database Error in model dim_qbs (models/marts/core/dim_qbs.sql)
+  no such table: main.fct_qb_personnel_stats
+  compiled code at target/run/nfl_qb_personnel/models/marts/core/dim_qbs.sql
+[0m16:32:38.970996 [debug] [Thread-4  ]: SQL status: OK in 0.001 seconds
+[0m16:32:38.971430 [debug] [Thread-1  ]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '7e852ea6-1b06-4f94-a28b-487c4b98626f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1035639d0>]}
+[0m16:32:38.972032 [debug] [Thread-4  ]: On model.nfl_qb_personnel.int_qb_personnel_plays: Close
+[0m16:32:38.972545 [error] [Thread-1  ]: 1 of 4 ERROR creating sql table model main.dim_qbs ............................. [[31mERROR[0m in 0.05s]
+[0m16:32:38.973238 [debug] [Thread-1  ]: Finished running node model.nfl_qb_personnel.dim_qbs
+[0m16:32:38.973574 [debug] [Thread-7  ]: Marking all children of 'model.nfl_qb_personnel.dim_qbs' to be skipped because of status 'error'.  Reason: Database Error in model dim_qbs (models/marts/core/dim_qbs.sql)
+  no such table: main.fct_qb_personnel_stats
+  compiled code at target/run/nfl_qb_personnel/models/marts/core/dim_qbs.sql.
+[0m16:32:38.973834 [debug] [Thread-4  ]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '7e852ea6-1b06-4f94-a28b-487c4b98626f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1035639d0>]}
+[0m16:32:38.974257 [info ] [Thread-4  ]: 3 of 4 OK created sql view model main.int_qb_personnel_plays ................... [[32mOK[0m in 0.01s]
+[0m16:32:38.974590 [debug] [Thread-4  ]: Finished running node model.nfl_qb_personnel.int_qb_personnel_plays
+[0m16:32:38.975005 [debug] [Thread-2  ]: Began running node model.nfl_qb_personnel.fct_league_trends
+[0m16:32:38.975321 [info ] [Thread-2  ]: 4 of 4 START sql table model main.fct_league_trends ............................ [RUN]
+[0m16:32:38.975694 [debug] [Thread-2  ]: Re-using an available connection from the pool (formerly model.nfl_qb_personnel.stg_qb_plays, now model.nfl_qb_personnel.fct_league_trends)
+[0m16:32:38.975984 [debug] [Thread-2  ]: Began compiling node model.nfl_qb_personnel.fct_league_trends
+[0m16:32:38.978384 [debug] [Thread-2  ]: Writing injected SQL for node "model.nfl_qb_personnel.fct_league_trends"
+[0m16:32:38.978832 [debug] [Thread-2  ]: Began executing node model.nfl_qb_personnel.fct_league_trends
+[0m16:32:38.980386 [debug] [Thread-2  ]: Writing runtime sql for node "model.nfl_qb_personnel.fct_league_trends"
+[0m16:32:38.980825 [debug] [Thread-2  ]: Using sqlite connection "model.nfl_qb_personnel.fct_league_trends"
+[0m16:32:38.981053 [debug] [Thread-2  ]: On model.nfl_qb_personnel.fct_league_trends: BEGIN
+[0m16:32:38.981261 [debug] [Thread-2  ]: Opening a new connection, currently in state closed
+[0m16:32:38.981660 [debug] [Thread-2  ]: SQL status: OK in 0.000 seconds
+[0m16:32:38.981868 [debug] [Thread-2  ]: Using sqlite connection "model.nfl_qb_personnel.fct_league_trends"
+[0m16:32:38.982146 [debug] [Thread-2  ]: On model.nfl_qb_personnel.fct_league_trends: /* {"app": "dbt", "dbt_version": "1.10.15", "profile_name": "nfl_qb_personnel", "target_name": "dev", "node_id": "model.nfl_qb_personnel.fct_league_trends"} */
+
+  
+    
+    
+    create  table main."fct_league_trends"
+    as
+        
+
+/*
+    Fact Table: League Personnel Trends
+    
+    Shows league-wide personnel usage and performance trends.
+    Useful for identifying which matchups are most common and
+    what the league-average performance looks like.
+    
+    Grain: One row per Season + Personnel Matchup
+*/
+
+with qb_personnel_plays as (
+    
+    select * from main."int_qb_personnel_plays"
+    
+),
+
+league_aggregates as (
+    
+    select
+        -- Dimensions
+        season,
+        offense_personnel,
+        defense_personnel,
+        personnel_matchup,
+        
+        -- Play Volume
+        count(*) as league_play_count,
+        count(distinct qb_id) as qbs_used_matchup,
+        
+        -- League Average Performance
+        avg(epa) as league_epa_per_play,
+        stddev(epa) as league_epa_std_dev,
+        avg(case when success = 1 then 1.0 else 0.0 end) as league_success_rate,
+        
+        -- Pass/Run Split
+        avg(case when play_type = 'pass' then 1.0 else 0.0 end) as league_pass_rate,
+        sum(case when play_type = 'pass' then 1 else 0 end) as league_pass_plays,
+        sum(case when play_type = 'run' then 1 else 0 end) as league_run_plays,
+        
+        -- Yards
+        avg(yards_gained) as league_avg_yards,
+        
+        -- CPOE
+        avg(case when play_type = 'pass' then cpoe else null end) as league_avg_cpoe
+        
+    from qb_personnel_plays
+    
+    group by 1, 2, 3, 4
+    
+),
+
+with_usage_rates as (
+    
+    select
+        *,
+        
+        -- Calculate usage rate as % of all plays in that season
+        100.0 * league_play_count / sum(league_play_count) over (partition by season) as usage_pct,
+        
+        -- Rank matchups by frequency within each season
+        row_number() over (partition by season order by league_play_count desc) as usage_rank
+        
+    from league_aggregates
+    
+),
+
+with_trends as (
+    
+    select
+        *,
+        
+        -- Calculate year-over-year change in usage
+        usage_pct - lag(usage_pct) over (
+            partition by offense_personnel, defense_personnel 
+            order by season
+        ) as usage_pct_change_yoy,
+        
+        -- Calculate year-over-year change in EPA
+        league_epa_per_play - lag(league_epa_per_play) over (
+            partition by offense_personnel, defense_personnel 
+            order by season
+        ) as epa_change_yoy
+        
+    from with_usage_rates
+    
+)
+
+select * from with_trends
+order by season desc, league_play_count desc
+
+  
+[0m16:32:38.983607 [debug] [Thread-2  ]: On model.nfl_qb_personnel.fct_league_trends: ROLLBACK
+[0m16:32:38.983903 [debug] [Thread-2  ]: On model.nfl_qb_personnel.fct_league_trends: Close
+[0m16:32:38.984185 [debug] [Thread-2  ]: SQLite adapter: sqlite3 error: no such function: stddev
+[0m16:32:38.984895 [debug] [Thread-2  ]: Database Error in model fct_league_trends (models/marts/core/fct_league_trends.sql)
+  no such function: stddev
+  compiled code at target/run/nfl_qb_personnel/models/marts/core/fct_league_trends.sql
+[0m16:32:38.985210 [debug] [Thread-2  ]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '7e852ea6-1b06-4f94-a28b-487c4b98626f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1103ca6a0>]}
+[0m16:32:38.985586 [error] [Thread-2  ]: 4 of 4 ERROR creating sql table model main.fct_league_trends ................... [[31mERROR[0m in 0.01s]
+[0m16:32:38.985909 [debug] [Thread-2  ]: Finished running node model.nfl_qb_personnel.fct_league_trends
+[0m16:32:38.986187 [debug] [Thread-7  ]: Marking all children of 'model.nfl_qb_personnel.fct_league_trends' to be skipped because of status 'error'.  Reason: Database Error in model fct_league_trends (models/marts/core/fct_league_trends.sql)
+  no such function: stddev
+  compiled code at target/run/nfl_qb_personnel/models/marts/core/fct_league_trends.sql.
+[0m16:32:38.986994 [debug] [MainThread]: Using sqlite connection "master"
+[0m16:32:38.987304 [debug] [MainThread]: On master: BEGIN
+[0m16:32:38.987505 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m16:32:38.987951 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m16:32:38.988179 [debug] [MainThread]: On master: COMMIT
+[0m16:32:38.988412 [debug] [MainThread]: Using sqlite connection "master"
+[0m16:32:38.988642 [debug] [MainThread]: On master: COMMIT
+[0m16:32:38.988842 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m16:32:38.989033 [debug] [MainThread]: On master: Close
+[0m16:32:38.989309 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m16:32:38.989485 [debug] [MainThread]: Connection 'model.nfl_qb_personnel.dim_qbs' was properly closed.
+[0m16:32:38.989648 [debug] [MainThread]: Connection 'model.nfl_qb_personnel.fct_league_trends' was properly closed.
+[0m16:32:38.989809 [debug] [MainThread]: Connection 'model.nfl_qb_personnel.int_qb_personnel_plays' was properly closed.
+[0m16:32:38.990052 [info ] [MainThread]: 
+[0m16:32:38.990257 [info ] [MainThread]: Finished running 2 table models, 2 view models in 0 hours 0 minutes and 0.13 seconds (0.13s).
+[0m16:32:38.990893 [debug] [MainThread]: Command end result
+[0m16:32:39.007063 [debug] [MainThread]: Wrote artifact WritableManifest to /Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/target/manifest.json
+[0m16:32:39.008193 [debug] [MainThread]: Wrote artifact SemanticManifest to /Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/target/semantic_manifest.json
+[0m16:32:39.012750 [debug] [MainThread]: Wrote artifact RunExecutionResult to /Users/calebsherman/projects/other/nfl-qb-personnell-analysis/dbt_project/target/run_results.json
+[0m16:32:39.013094 [info ] [MainThread]: 
+[0m16:32:39.013369 [info ] [MainThread]: [31mCompleted with 2 errors, 0 partial successes, and 0 warnings:[0m
+[0m16:32:39.013590 [info ] [MainThread]: 
+[0m16:32:39.013844 [error] [MainThread]: [31mFailure in model dim_qbs (models/marts/core/dim_qbs.sql)[0m
+[0m16:32:39.014106 [error] [MainThread]:   Database Error in model dim_qbs (models/marts/core/dim_qbs.sql)
+  no such table: main.fct_qb_personnel_stats
+  compiled code at target/run/nfl_qb_personnel/models/marts/core/dim_qbs.sql
+[0m16:32:39.014311 [info ] [MainThread]: 
+[0m16:32:39.014534 [info ] [MainThread]:   compiled code at target/compiled/nfl_qb_personnel/models/marts/core/dim_qbs.sql
+[0m16:32:39.014732 [info ] [MainThread]: 
+[0m16:32:39.014959 [error] [MainThread]: [31mFailure in model fct_league_trends (models/marts/core/fct_league_trends.sql)[0m
+[0m16:32:39.015186 [error] [MainThread]:   Database Error in model fct_league_trends (models/marts/core/fct_league_trends.sql)
+  no such function: stddev
+  compiled code at target/run/nfl_qb_personnel/models/marts/core/fct_league_trends.sql
+[0m16:32:39.015376 [info ] [MainThread]: 
+[0m16:32:39.015593 [info ] [MainThread]:   compiled code at target/compiled/nfl_qb_personnel/models/marts/core/fct_league_trends.sql
+[0m16:32:39.015778 [info ] [MainThread]: 
+[0m16:32:39.015988 [info ] [MainThread]: Done. PASS=2 WARN=0 ERROR=2 SKIP=0 NO-OP=0 TOTAL=4
+[0m16:32:39.016334 [warn ] [MainThread]: [[33mWARNING[0m][DeprecationsSummary]: Deprecated functionality
+Summary of encountered deprecations:
+- MissingArgumentsPropertyInGenericTestDeprecation: 1 occurrence
+To see all deprecation instances instead of just the first occurrence of each,
+run command again with the `--show-all-deprecations` flag. You may also need to
+run with `--no-partial-parse` as some deprecations are only encountered during
+parsing.
+[0m16:32:39.017756 [debug] [MainThread]: Resource report: {"command_name": "run", "command_success": false, "command_wall_clock_time": 1.264009, "process_in_blocks": "0", "process_kernel_time": 0.202401, "process_mem_max_rss": "127729664", "process_out_blocks": "0", "process_user_time": 1.879974}
+[0m16:32:39.018017 [debug] [MainThread]: Command `dbt run` failed at 16:32:39.017969 after 1.26 seconds
+[0m16:32:39.018265 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x104d390d0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1103f4310>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x104fe30d0>]}
+[0m16:32:39.018507 [debug] [MainThread]: Flushing usage events
+[0m16:32:39.228030 [debug] [MainThread]: An error was encountered while trying to flush usage events

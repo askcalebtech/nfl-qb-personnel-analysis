@@ -1,0 +1,52 @@
+name: 'nfl_qb_personnel'
+version: '1.0.0'
+config-version: 2
+
+# This setting configures which "profile" dbt uses for this project.
+profile: 'nfl_qb_personnel'
+
+# These configurations specify where dbt should look for different types of files.
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Configuring models
+models:
+  nfl_qb_personnel:
+    # Staging models
+    staging:
+      +materialized: view
+      +tags: ["staging"]
+    
+    # Intermediate models
+    intermediate:
+      +materialized: view
+      +tags: ["intermediate"]
+    
+    # Marts/Analytics models
+    marts:
+      +materialized: table
+      +tags: ["marts"]
+      core:
+        +materialized: table
+
+# Seeds configuration
+seeds:
+  nfl_qb_personnel:
+    +quote_columns: false
+
+# Documentation
+# docs:
+#   nfl_qb_personnel:
+#     node_colors:
+#       staging: "#E8F4F8"
+#       intermediate: "#B8D4E0"
+#       marts: "#5A8FA8"

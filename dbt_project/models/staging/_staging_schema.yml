@@ -1,0 +1,50 @@
+version: 2
+
+models:
+  - name: stg_qb_plays
+    description: >
+      Cleaned and standardized QB plays from 2022-2024 seasons.
+      Each row represents a single QB dropback (pass or designed QB run)
+      with complete personnel matchup information.
+    
+    columns:
+      - name: play_key
+        description: Unique identifier for each play (game_id + play_id)
+        tests:
+          - unique
+          - not_null
+      
+      - name: qb_id
+        description: Unique identifier for the quarterback
+        tests:
+          - not_null
+      
+      - name: qb_name
+        description: Quarterback's name (may be NULL for some QB runs)
+      
+      - name: season
+        description: NFL season year
+        tests:
+          - not_null
+          - accepted_values:
+              values: [2022, 2023, 2024]
+      
+      - name: offense_personnel
+        description: Standardized offensive personnel (e.g., "11", "12", "21")
+        tests:
+          - not_null
+      
+      - name: defense_personnel
+        description: Classified defensive personnel (Base, Nickel, Dime, Quarter)
+        tests:
+          - not_null
+      
+      - name: epa
+        description: Expected Points Added on the play
+        tests:
+          - not_null
+      
+      - name: is_dropback
+        description: Flag indicating if this is a QB dropback play
+        tests:
+          - not_null
