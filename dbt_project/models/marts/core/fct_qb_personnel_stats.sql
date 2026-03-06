@@ -63,7 +63,8 @@ final as (
 
     select
         *,
-        case when play_count >= 20 then true else false end as meets_min_threshold
+        case when play_count >= 20 then true else false end as meets_min_threshold,
+        case when play_count >= 50 then true else false end as meets_starter_threshold
     from aggregated
 
 )

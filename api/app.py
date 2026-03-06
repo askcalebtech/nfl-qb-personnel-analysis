@@ -100,6 +100,7 @@ class QBStats(BaseModel):
     avg_yac_epa: Optional[float] = None
     avg_wpa: Optional[float] = None
     meets_min_threshold: Optional[bool] = None
+    meets_starter_threshold: Optional[bool] = None
 
 
 class LeagueTrend(BaseModel):

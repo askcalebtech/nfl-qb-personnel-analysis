@@ -166,18 +166,21 @@ See [airflow/README.md](airflow/README.md) for full setup details.
 ### Sample Results
 
 ```bash
-# Top QBs in 11 vs Nickel, 2024, 20+ plays
-curl "http://localhost:8000/matchup/11_vs_Nickel?season=2024&min_plays=20"
+# Top QBs in 11 vs Nickel, 2024 (filter to meets_starter_threshold client-side)
+curl "http://localhost:8000/matchup/11_vs_Nickel?season=2024"
 ```
+
+Top 5 by EPA/play among QBs with 50+ plays in this matchup:
 
 ```json
 [
-  { "qb_name": "L.Jackson", "play_count": 150, "epa_per_play": 0.312, "pass_attempts": 130, "sacks": 9, "scrambles": 11 },
-  { "qb_name": "P.Mahomes", "play_count": 265, "epa_per_play": 0.169, "pass_attempts": 236, "sacks": 15, "scrambles": 14 }
+  { "qb_name": "M.Willis",  "play_count": 51,  "epa_per_play": 0.659, "pass_attempts": 41,  "sacks": 4,  "scrambles": 6,  "success_rate": 0.471 },
+  { "qb_name": "J.Goff",    "play_count": 339, "epa_per_play": 0.273, "pass_attempts": 315, "sacks": 16, "scrambles": 8,  "success_rate": 0.516 },
+  { "qb_name": "J.Allen",   "play_count": 305, "epa_per_play": 0.239, "pass_attempts": 268, "sacks": 10, "scrambles": 27, "success_rate": 0.475 },
+  { "qb_name": "P.Mahomes", "play_count": 265, "epa_per_play": 0.206, "pass_attempts": 236, "sacks": 15, "scrambles": 14, "success_rate": 0.494 },
+  { "qb_name": "J.Hurts",   "play_count": 277, "epa_per_play": 0.204, "pass_attempts": 231, "sacks": 20, "scrambles": 26, "success_rate": 0.513 }
 ]
 ```
-
-> **Note:** Screenshots and full sample outputs coming soon.
 
 ---
 
