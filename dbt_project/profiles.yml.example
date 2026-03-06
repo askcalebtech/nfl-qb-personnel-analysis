@@ -1,0 +1,21 @@
+# dbt profile for NFL QB Personnel Analysis
+# This connects dbt to our SQLite database
+#
+# SETUP: Copy this file to profiles.yml and update the paths below
+#        to match your local machine's absolute path to the project.
+#
+#   cp profiles.yml.example profiles.yml
+#
+# NOTE: profiles.yml is gitignored — never commit it directly.
+
+nfl_qb_personnel:
+  target: dev
+  outputs:
+    dev:
+      type: sqlite
+      threads: 4
+      database: 'nfl_qb_analysis'
+      schema: 'main'
+      schemas_and_paths:
+        main: '/absolute/path/to/nfl-qb-personnell-analysis/data/analytics/nfl_qb_analysis.db'
+      schema_directory: '/absolute/path/to/nfl-qb-personnell-analysis/data/analytics'

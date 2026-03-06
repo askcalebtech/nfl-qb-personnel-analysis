@@ -1,7 +1,10 @@
-# Data files
-data/raw/
-data/processed/
-data/analytics/
+# Data files — ignore contents but track directory structure via .gitkeep
+data/raw/*
+data/processed/*
+data/analytics/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/analytics/.gitkeep
 
 # Python
 __pycache__/
