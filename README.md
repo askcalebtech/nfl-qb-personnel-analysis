@@ -215,11 +215,11 @@ nflfastR play-by-play and participation datasets don't share a clean `game_id`. 
 **Personnel string parsing**  
 Raw personnel strings (`"1 C, 2 G, 1 QB, 1 RB, 2 T, 1 TE, 3 WR"`) are parsed into standard notation (`"11"`) using a pure Python function wrapped as a Spark UDF. Built as pure Python first for testability, then registered as a UDF for distributed processing.
 
-**QB identity across play types**  
-nflfastR uses different ID fields depending on play type: `passer_player_id` is populated for passes and sacks, but scramble plays only populate `passer_id`. Fixed via `coalesce(passer_player_id, passer_id) as qb_id` in staging — without this, all scrambles aggregate to a NULL QB row in the fact table.
+**QB identity across play types**
+nflfastR intentionally does not classify QB scrambles as rush attempts — unlike the NFL's official stats, which do. This means scramble plays carry `pass = 1` in the data but populate `passer_id` rather than `passer_player_id`, which is reserved for standard dropbacks and sacks. Without accounting for this, all scramble plays aggregate to a NULL QB row in the fact table. Fixed via `coalesce(passer_player_id, passer_id) as qb_id` in `stg_qb_plays.sql`, correctly attributing scrambles to their QB across all downstream models.
 
-**`pass_attempt = 1` on sack plays**  
-The nflfastR `pass_attempt` flag is set to `1` on sack plays, meaning a naive `sum(pass_attempt)` double-counts sacks. Fixed with `sum(case when pass_attempt = 1 and sack = 0 then 1 else 0 end)`.
+**`pass_attempt = 1` on sack plays**
+Per nflfastR's data design, the `pass` flag is set to `1` on all dropbacks — including sacks and scrambles — because the QB's intent was to pass. As a result, a naive `sum(pass_attempt)` double-counts sacks as pass attempts. Fixed with `sum(case when pass_attempt = 1 and sack = 0 then 1 else 0 end)` to isolate true pass attempts from plays where a pass was intended but the QB was brought down before throwing.
 
 **SQLite stddev compatibility**  
 SQLite has no native `stddev()` function. Replaced with the population standard deviation formula: `sqrt(max(0, avg(epa * epa) - avg(epa) * avg(epa)))` in `fct_league_trends.sql`.
@@ -272,7 +272,7 @@ Pure Python first, Spark UDF second. This separation means the parser has unit t
 
 ## Known Limitations
 
-- **Designed QB runs** (e.g. read-option handoff fakes) are not captured — nflfastR attributes these to the rusher, not the passer, and they don't have a `passer_player_id`. This is a source data constraint, not a pipeline bug.
+- **Designed QB runs** (e.g. read-option keepers, QB sneaks) are not captured in this analysis. nflfastR follows the NFL's official convention of classifying these as rush plays attributed to the rusher — they do not carry a `passer_player_id` or `passer_id`, so they fall outside the QB identity filter applied in the Spark pipeline. This is an intentional source data design decision, not a pipeline bug. A future enhancement could add rusher-based filtering to capture designed runs separately.
 - **2025 data** not yet available from nflfastR participation dataset.
 - **SQLite** is not suitable for concurrent API access at scale — production deployment would swap to Postgres.
 
