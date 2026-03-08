@@ -194,16 +194,19 @@ class NFLDataExtractor:
 
 def main():
     """Main execution function."""
-    # Configuration
-    YEARS = [2022, 2023, 2024, 2025]  # Seasons to download (2025 = current season)
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+    from config import SEASONS
+
+    YEARS = SEASONS
     OUTPUT_DIR = "data/raw"
-    
+
     # Initialize extractor
     extractor = NFLDataExtractor(output_dir=OUTPUT_DIR)
-    
+
     # Extract all data
     print(f"\nAttempting to download data for years: {YEARS}")
-    print("Note: 2025 participation data may be incomplete (season in progress)\n")
     
     results = extractor.extract_all(years=YEARS)
     

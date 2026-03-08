@@ -33,7 +33,7 @@ from spark.utils import (
 )
 
 
-def load_standardized_data(spark, year_range: str = "2022_2024") -> DataFrame:
+def load_standardized_data(spark, year_range: str = "2022_2025") -> DataFrame:
     """
     Load the standardized personnel data.
     
@@ -311,7 +311,7 @@ def run_quality_checks(df: DataFrame) -> None:
     checker.print_summary()
 
 
-def save_qb_plays(df: DataFrame, year_range: str = "2022_2024") -> None:
+def save_qb_plays(df: DataFrame, year_range: str = "2022_2025") -> None:
     """
     Save filtered QB plays to processed directory.
     
@@ -333,7 +333,7 @@ def save_qb_plays(df: DataFrame, year_range: str = "2022_2024") -> None:
 
 def main():
     """Main execution function."""
-    YEAR_RANGE = "2022_2024"
+    from config import YEAR_RANGE
     
     print("="*80)
     print("FILTER TO QB-RELEVANT PLAYS")

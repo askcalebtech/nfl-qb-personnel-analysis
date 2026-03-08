@@ -220,7 +220,7 @@ def run_quality_checks(df: DataFrame) -> None:
     checker.print_summary()
 
 
-def save_standardized_data(df: DataFrame, year_range: str = "2022_2024") -> None:
+def save_standardized_data(df: DataFrame, year_range: str = "2022_2025") -> None:
     """
     Save standardized data to processed directory.
     
@@ -242,7 +242,7 @@ def save_standardized_data(df: DataFrame, year_range: str = "2022_2024") -> None
 
 def main():
     """Main execution function."""
-    YEAR_RANGE = "2022_2024"
+    from config import YEAR_RANGE
     
     print("="*80)
     print("STANDARDIZE PERSONNEL NOTATION")

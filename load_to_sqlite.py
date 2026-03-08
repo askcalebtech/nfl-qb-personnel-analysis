@@ -26,9 +26,11 @@ def load_parquet_to_sqlite():
     print("LOADING QB PLAYS TO SQLITE")
     print("="*80 + "\n")
     
+    from config import QB_PLAYS_PARQUET_PATH, ANALYTICS_DB_PATH
+
     # Paths
-    parquet_path = "data/processed/qb_plays_2022_2024.parquet"
-    db_path = "data/analytics/nfl_qb_analysis.db"
+    parquet_path = QB_PLAYS_PARQUET_PATH
+    db_path = ANALYTICS_DB_PATH
     
     # Create analytics directory
     Path("data/analytics").mkdir(parents=True, exist_ok=True)

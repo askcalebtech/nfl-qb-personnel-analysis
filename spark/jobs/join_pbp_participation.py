@@ -291,8 +291,8 @@ def run_quality_checks(df: DataFrame) -> None:
 
 def main():
     """Main execution function."""
-    # Configuration
-    YEARS = [2022, 2023, 2024]  # Seasons to process
+    from config import SEASONS
+    YEARS = SEASONS
     
     print("="*60)
     print("JOIN PLAY-BY-PLAY AND PARTICIPATION DATA")
