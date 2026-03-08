@@ -90,9 +90,7 @@ nfl-qb-personnell-analysis/
 
 ### Prerequisites
 
-- Python 3.9+
-- Java 17 (required for PySpark — `brew install openjdk@17`)
-- ~5GB disk space for raw data
+See [SETUP.md](SETUP.md) for full environment setup instructions including Python version management, Java installation, and troubleshooting.
 
 ```bash
 git clone https://github.com/askcalebtech/nfl-qb-personnell-analysis.git

@@ -7,6 +7,8 @@ The process takes about 15–20 minutes once the data is available from nflfastR
 
 ## Before You Start
 
+If this is your first time running the pipeline, see [SETUP.md](SETUP.md) for full environment setup instructions before continuing.
+
 ### Check that participation data is available
 
 The pipeline requires **both** play-by-play and participation data. Play-by-play data
