@@ -17,7 +17,7 @@ Portfolio project analyzing NFL QB performance by personnel matchup (e.g., "11 p
 | Python | 3.9.13 | Runtime |
 | PySpark | 3.5.0 | Data processing |
 | dbt-core | 1.7.4 | Transformations |
-| dbt-sqlite | 1.7.1 | dbt adapter |
+| dbt-sqlite | 1.5.1 | dbt adapter |
 | FastAPI | TBD | API layer (TODO) |
 | Airflow | TBD | Orchestration (TODO) |
 
@@ -38,8 +38,7 @@ nfl-qb-personnell-analysis/       # Note: "personnell" is a typo in the dir name
 │       ├── extract_nflfastr.py   # Downloads nflfastR parquet files from GitHub releases
 │       ├── join_pbp_participation.py   # Joins PBP + participation on old_game_id + play_id
 │       ├── standardize_personnel.py    # Applies personnel UDFs, creates offense/defense std cols
-│       ├── filter_qb_plays.py          # Filters to 64,605 QB-relevant regular season plays
-│       └── aggregate_stats.py          # (check current state before modifying)
+│       └── filter_qb_plays.py          # Filters to QB-relevant regular season plays
 ├── dbt_project/
 │   ├── dbt_project.yml
 │   ├── profiles.yml               # LOCAL ONLY — gitignored, contains SQLite path
@@ -55,9 +54,9 @@ nfl-qb-personnell-analysis/       # Note: "personnell" is a typo in the dir name
 │           ├── fct_league_trends.sql       # League-wide trends — materialized as table
 │           ├── dim_qbs.sql                 # QB dimension table — materialized as table
 │           └── _marts_schema.yml
-├── api/                           # TODO: FastAPI app
-├── airflow/                       # TODO: Airflow DAGs
-├── frontend/                      # TODO: Next.js app (optional/Phase 2)
+├── api/                           # FastAPI app (6 endpoints)
+├── airflow/                       # Airflow DAG
+├── frontend/                      # Next.js dashboard (QB Dashboard, Leaderboard, League Trends)
 ├── tests/                         # Test utilities
 ├── data/                          # GITIGNORED — never commit anything in here
 │   ├── raw/                       # nflfastR parquet downloads
@@ -100,14 +99,13 @@ cd dbt_project && dbt run --profiles-dir . && cd ..
 
 ## Key Data Facts
 
-- **Final dataset:** 64,605 QB plays (2022-2024 regular season)
+- **Final dataset:** 85,568 QB plays (2022-2025 regular seasons)
 - **Source:** nflfastR via `https://github.com/nflverse/nflverse-data/releases/download`
 - **Join keys:** `old_game_id` + `play_id` (not `game_id` — this is important)
-- **Join rate:** 95.2% (141,521 of 148,591 plays joined successfully)
-- **Unique QBs:** 189
-- **Top QB by volume:** Patrick Mahomes (1,915 plays)
-- **Most common matchup:** "11 vs Nickel" — 57,614 plays (40.7%)
-- **2025 data:** participation data not yet available; do not attempt to add 2025
+- **Join rate:** ~95% (consistent across all seasons)
+- **Unique QBs:** 216
+- **Top QB by volume:** Patrick Mahomes (2,634 plays)
+- **Most common matchup:** "11 vs Nickel" — 43,942 plays (51% of all plays)
 
 ### Personnel Encoding
 
@@ -122,7 +120,7 @@ cd dbt_project && dbt run --profiles-dir . && cd ..
 
 ## dbt Configuration
 
-- **Adapter:** SQLite via dbt-sqlite 1.7.1
+- **Adapter:** SQLite via dbt-sqlite 1.5.1
 - **Database:** `data/analytics/nfl_qb_analysis.db` (relative to project root)
 - **Run commands from:** `dbt_project/` directory with `--profiles-dir .` flag always
 - **Staging:** materialized as views
@@ -160,27 +158,27 @@ Always import the session from `spark/utils/spark_session.py` — do not create 
 | Layer | Status | Notes |
 |-------|--------|-------|
 | Data ingestion | ✅ Done | `extract_nflfastr.py` |
-| Spark pipeline | ✅ Done | 3 jobs + utils |
+| Spark pipeline | ✅ Done | 4 jobs + utils |
 | dbt models | ✅ Done | 5 models, staging → marts |
 | SQLite load | ✅ Done | `load_to_sqlite.py` |
-| `profiles.yml.example` | 🚧 Next | Safe committed version of profiles.yml |
-| README.md | 🚧 Next | Portfolio-quality readme with architecture diagram |
-| FastAPI layer | 🚧 TODO | 4 endpoints (see API spec below) |
-| Airflow DAG | 🚧 TODO | 1 DAG, 6 tasks |
-| Frontend | 🚧 Optional | Next.js, Phase 2 |
+| `profiles.yml.example` | ✅ Done | Safe committed version of profiles.yml |
+| README.md | ✅ Done | Portfolio-quality readme with architecture diagram |
+| FastAPI layer | ✅ Done | 6 endpoints (api/app.py) |
+| Airflow DAG | ✅ Done | 1 DAG, 6 tasks |
+| Frontend | ✅ Done | Next.js dashboard — QB Dashboard, Leaderboard, League Trends |
 
 ---
 
-## API Spec (FastAPI — not yet built)
-
-Target file: `api/app.py`  
-Database: query `data/analytics/nfl_qb_analysis.db` directly via `sqlite3` or `aiosqlite`
+## API Endpoints (FastAPI — api/app.py)
 
 ```
+GET /health                       # Liveness check + DB reachability
 GET /qbs                          # All QBs from dim_qbs
 GET /qbs/{qb_id}/stats            # QB stats by matchup; ?season=2024&min_plays=20
 GET /trends                       # League trends from fct_league_trends; ?season=2024
 GET /matchup/{matchup}            # All QBs in a specific matchup (e.g. "11_vs_Nickel")
+GET /rankings                     # Season QB rankings by weighted EPA/play; ?season=2024&min_plays=20
+GET /leaderboard                  # QB leaderboard for a matchup with auto min-plays threshold; ?season=2024&matchup=11_vs_Nickel
 ```
 
 ---
@@ -216,7 +214,7 @@ Claude Code should **always ask** before:
 ## Interview Talking Points (for context on project framing)
 
 - **Architecture:** 3-layer pipeline — Spark for distributed processing, dbt for SQL transformations, API for serving. Demonstrates separation of concerns.
-- **Scale:** 150k plays processed, 95% join accuracy, 600+ statistically significant QB/matchup combinations.
+- **Scale:** ~200k plays processed across 4 seasons (2022-2025), 95% join accuracy, 807 statistically significant QB/matchup combinations (≥20 plays).
 - **Personnel parser:** Raw strings like `"1 C, 2 G, 1 QB, 1 RB..."` → standardized `"11"` notation. Built as pure Python for testability, wrapped as Spark UDF for scale.
 - **Data quality:** Reusable `DataQualityChecker` validates join rates, null rates, value ranges at every pipeline stage.
-- **Pragmatic decisions:** Used 2022-2024 (complete data) rather than waiting for 2025. Architecture supports incremental updates.
+- **Pragmatic decisions:** Covers four complete regular seasons (2022-2025). Adding a new season requires only updating `config.py` and re-running the pipeline.

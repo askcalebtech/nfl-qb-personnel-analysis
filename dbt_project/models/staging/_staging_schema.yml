@@ -3,7 +3,7 @@ version: 2
 models:
   - name: stg_qb_plays
     description: >
-      Cleaned and standardized QB plays from 2022-2024 seasons.
+      Cleaned and standardized QB plays from 2022-2025 seasons.
       Each row represents a single QB dropback (pass or designed QB run)
       with complete personnel matchup information.
     
@@ -27,7 +27,7 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: [2022, 2023, 2024]
+              values: [2022, 2023, 2024, 2025]
       
       - name: offense_personnel
         description: Standardized offensive personnel (e.g., "11", "12", "21")

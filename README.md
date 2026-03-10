@@ -1,12 +1,12 @@
 # NFL QB Personnel Analysis
 
-A data engineering portfolio project analyzing NFL quarterback performance by personnel matchup (e.g., "11 personnel vs Nickel defense") across the 2022–2024 seasons.
+A data engineering portfolio project analyzing NFL quarterback performance by personnel matchup (e.g., "11 personnel vs Nickel defense") across the 2022–2025 seasons.
 
 Built to demonstrate modern data stack breadth: distributed processing with PySpark, SQL transformations with dbt, REST API with FastAPI, and pipeline orchestration with Airflow.
 
-**Dataset:** 64,605 QB plays · 188 unique QBs · 2022–2024 regular season
-**Most common matchup:** 11 vs Nickel — 52% of all plays
-**Top QB by volume:** Patrick Mahomes (2,048 plays)
+**Dataset:** 85,568 QB plays · 216 unique QBs · 2022–2025 regular season
+**Most common matchup:** 11 vs Nickel — 51% of all plays
+**Top QB by volume:** Patrick Mahomes (2,634 plays)
 
 ---
 
@@ -18,7 +18,7 @@ nflfastR (GitHub releases)
         ▼
 ┌─────────────────┐
 │   PySpark Jobs  │  Extract → Join → Standardize → Filter
-│  (spark/jobs/)  │  148k plays → 64,605 QB-relevant plays
+│  (spark/jobs/)  │  ~200k plays → 85,568 QB-relevant plays
 └────────┬────────┘
          │ Parquet
          ▼
@@ -29,7 +29,7 @@ nflfastR (GitHub releases)
          │ SQL tables
          ▼
 ┌─────────────────┐
-│    FastAPI      │  4 endpoints serving QB + league data
+│    FastAPI      │  6 endpoints serving QB + league data
 │   (api/app.py)  │  Pydantic response models, CORS enabled
 └─────────────────┘
 
@@ -64,7 +64,7 @@ nfl-qb-personnell-analysis/
 │       ├── extract_nflfastr.py        # Download raw parquet from nflfastR
 │       ├── join_pbp_participation.py  # Join PBP + participation (95.2% join rate)
 │       ├── standardize_personnel.py   # Parse personnel strings via Spark UDFs
-│       └── filter_qb_plays.py         # Filter to 64,605 QB-relevant plays
+│       └── filter_qb_plays.py         # Filter to QB-relevant plays
 ├── dbt_project/
 │   └── models/
 │       ├── staging/stg_qb_plays.sql           # Clean QB plays (view)
@@ -74,9 +74,12 @@ nfl-qb-personnell-analysis/
 │           ├── fct_league_trends.sql           # League-wide trends (table)
 │           └── dim_qbs.sql                     # QB dimension table (table)
 ├── api/
-│   └── app.py                         # FastAPI application
+│   └── app.py                         # FastAPI application (6 endpoints)
 ├── airflow/
 │   └── dags/nfl_pipeline.py           # Full pipeline DAG
+├── frontend/
+│   ├── app/                           # Next.js App Router pages
+│   └── components/                    # Reusable React components
 ├── load_to_sqlite.py                  # Parquet → SQLite loader
 └── data/                              # Gitignored — regenerate via pipeline
     ├── raw/                           # nflfastR parquet downloads
@@ -160,6 +163,8 @@ See [airflow/README.md](airflow/README.md) for full setup details.
 | `GET` | `/qbs/{qb_id}/stats` | QB stats by matchup (`?season=2024&min_plays=20`) |
 | `GET` | `/trends` | League-wide personnel trends (`?season=2024`) |
 | `GET` | `/matchup/{matchup}` | All QBs for a matchup (e.g. `11_vs_Nickel`) |
+| `GET` | `/rankings` | Season QB rankings by weighted EPA/play (`?season=2024&min_plays=20`) |
+| `GET` | `/leaderboard` | QB leaderboard for a matchup with auto min-plays threshold (`?season=2024&matchup=11_vs_Nickel`) |
 
 ### Sample Results
 
@@ -245,8 +250,8 @@ int_qb_personnel_plays (view)
 
 ## Key Findings
 
-- **11 vs Nickel** is the dominant matchup at 52% of all QB plays — the modern NFL is a nickel-vs-spread game
-- **2,461 QB × season × personnel matchup** combinations tracked across 50 distinct matchup types
+- **11 vs Nickel** is the dominant matchup at 51% of all QB plays — the modern NFL is a nickel-vs-spread game
+- **3,265 QB × season × personnel matchup** combinations tracked across 54 distinct matchup types; 807 meet the 20-play significance threshold
 - **Jared Goff** leads EPA/play among 100+ play QBs in 11 vs Nickel in 2024 at +0.273; 40 QBs qualify at that threshold
 - **Year-over-year trends** in `fct_league_trends` show Dime defense usage increasing as offenses push more 11 personnel
 
@@ -254,8 +259,8 @@ int_qb_personnel_plays (view)
 
 ## Interview Talking Points
 
-**Why Spark for 64k rows?**  
-The raw dataset is 148k plays across 372 columns — Spark handles the join, column pruning, and UDF application cleanly. More importantly, the architecture is designed to scale: adding seasons or expanding to all plays (not just QB plays) requires no structural changes.
+**Why Spark for 85k rows?**
+The raw dataset is ~200k plays across 372 columns — Spark handles the join, column pruning, and UDF application cleanly. More importantly, the architecture is designed to scale: adding seasons or expanding to all plays (not just QB plays) requires no structural changes.
 
 **Why SQLite instead of Postgres?**  
 Deliberately chosen to keep the project fully local and zero-infrastructure. The dbt models are standard SQL with no SQLite-specific syntax (except the stddev workaround), so migrating to Postgres is a one-line profiles.yml change.
@@ -263,15 +268,14 @@ Deliberately chosen to keep the project fully local and zero-infrastructure. The
 **Personnel parser design**  
 Pure Python first, Spark UDF second. This separation means the parser has unit tests independent of Spark, and the same function can be used in pandas contexts (like the load script) without a SparkSession.
 
-**Pragmatic data decisions**  
-2025 participation data isn't yet available from nflfastR. Rather than waiting, the project uses complete 2022–2024 data and the architecture supports incremental season additions without pipeline changes.
+**Pragmatic data decisions**
+The project covers four complete regular seasons (2022–2025). The architecture supports incremental season additions — adding a new season requires only updating `config.py` and re-running the pipeline.
 
 ---
 
 ## Known Limitations
 
 - **Designed QB runs** (e.g. read-option keepers, QB sneaks) are not captured in this analysis. nflfastR follows the NFL's official convention of classifying these as rush plays attributed to the rusher — they do not carry a `passer_player_id` or `passer_id`, so they fall outside the QB identity filter applied in the Spark pipeline. This is an intentional source data design decision, not a pipeline bug. A future enhancement could add rusher-based filtering to capture designed runs separately.
-- **2025 data** not yet available from nflfastR participation dataset.
 - **SQLite** is not suitable for concurrent API access at scale — production deployment would swap to Postgres.
 
 ---

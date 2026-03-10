@@ -8,7 +8,7 @@ When adding a new season, update SEASONS here and nowhere else.
 # ============================================================
 # UPDATE THIS WHEN ADDING A NEW SEASON
 # ============================================================
-SEASONS = [2022, 2023, 2024]
+SEASONS = [2022, 2023, 2024, 2025]
 # ============================================================
 
 # Derived values — do not edit these directly
