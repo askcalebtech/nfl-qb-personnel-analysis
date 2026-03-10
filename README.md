@@ -7,6 +7,7 @@ Built to demonstrate modern data stack breadth: distributed processing with PySp
 **Dataset:** 85,568 QB plays · 216 unique QBs · 2022–2025 regular season
 **Most common matchup:** 11 vs Nickel — 51% of all plays
 **Top QB by volume:** Patrick Mahomes (2,634 plays)
+**Live demo:** [nfl-qb-personnel-analysis.vercel.app](https://nfl-qb-personnel-analysis.vercel.app/dashboard)
 
 ---
 
