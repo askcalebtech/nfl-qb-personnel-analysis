@@ -8,6 +8,7 @@ Serves data from the dbt-built SQLite tables:
 """
 
 import math
+import os
 import sqlite3
 from pathlib import Path
 from typing import List, Optional
@@ -21,7 +22,7 @@ from pydantic import BaseModel
 # ---------------------------------------------------------------------------
 
 BASE_DIR = Path(__file__).parent.parent
-DB_PATH = BASE_DIR / "data" / "analytics" / "nfl_qb_analysis.db"
+DB_PATH = Path(os.getenv("DATABASE_URL", str(BASE_DIR / "data" / "analytics" / "nfl_qb_analysis.db")))
 
 
 def get_db() -> sqlite3.Connection:
