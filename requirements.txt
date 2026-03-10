@@ -10,15 +10,15 @@ requests==2.31.0
 pyspark==3.5.0
 
 # Apache Airflow
-apache-airflow==2.8.0
-apache-airflow-providers-apache-spark==4.5.0
+# apache-airflow==2.8.0
+# apache-airflow-providers-apache-spark==4.5.0
 
 # dbt
-dbt-core==1.7.4
-dbt-sqlite==1.7.1
+dbt-core==1.5.0
+dbt-sqlite==1.5.1
 
 # Database
-sqlalchemy==2.0.23
+sqlalchemy>=1.4.28,<2.0
 
 # API Framework
 fastapi==0.108.0

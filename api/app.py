@@ -7,6 +7,7 @@ Serves data from the dbt-built SQLite tables:
   - fct_league_trends      — League-wide trends by season + matchup
 """
 
+import math
 import sqlite3
 from pathlib import Path
 from typing import List, Optional
@@ -35,7 +36,7 @@ def get_db() -> sqlite3.Connection:
 
 app = FastAPI(
     title="NFL QB Personnel Analysis",
-    description="Analyze QB performance across offensive/defensive personnel matchups (2022-2024).",
+    description="Analyze QB performance across offensive/defensive personnel matchups (2022-2025).",
     version="1.0.0",
 )
 
@@ -122,6 +123,33 @@ class LeagueTrend(BaseModel):
     usage_rank: Optional[int] = None
     usage_pct_change_yoy: Optional[float] = None
     epa_change_yoy: Optional[float] = None
+
+
+class LeaderboardEntry(BaseModel):
+    qb_id: str
+    qb_name: Optional[str] = None
+    season: Optional[str] = None
+    team: Optional[str] = None
+    play_count: Optional[int] = None
+    epa_per_play: Optional[float] = None
+    success_rate: Optional[float] = None
+    pass_attempts: Optional[int] = None
+    sacks: Optional[int] = None
+    scrambles: Optional[int] = None
+    avg_cpoe: Optional[float] = None
+    rank: int
+    min_plays_threshold: int
+
+
+class QBRanking(BaseModel):
+    qb_id: str
+    qb_name: Optional[str] = None
+    season: str
+    total_plays: Optional[int] = None
+    epa_per_play: Optional[float] = None
+    success_rate: Optional[float] = None
+    pass_attempts: Optional[int] = None
+    is_starter: Optional[bool] = None
 
 
 class HealthResponse(BaseModel):
@@ -213,6 +241,95 @@ def trends(
     rows = conn.execute(sql, params).fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+@app.get("/rankings", response_model=List[QBRanking], tags=["qbs"])
+def rankings(
+    season: str = Query(..., description="Season to rank QBs for, e.g. 2024"),
+    min_plays: int = Query(20, description="Minimum total plays to qualify"),
+):
+    """Return all QBs ranked by EPA/play for a given season.
+
+    Aggregates fct_qb_personnel_stats across all matchups using weighted averages.
+    Only QBs meeting min_plays threshold are included.
+    """
+    conn = get_db()
+    rows = conn.execute(
+        """
+        SELECT
+            f.qb_id,
+            f.qb_name,
+            f.season,
+            SUM(f.play_count)                                         AS total_plays,
+            SUM(f.epa_per_play * f.play_count) / SUM(f.play_count)   AS epa_per_play,
+            SUM(f.success_rate * f.play_count) / SUM(f.play_count)   AS success_rate,
+            SUM(f.pass_attempts)                                      AS pass_attempts,
+            d.is_starter
+        FROM fct_qb_personnel_stats f
+        LEFT JOIN dim_qbs d ON f.qb_id = d.qb_id
+        WHERE f.season = ?
+          AND f.qb_id IS NOT NULL
+          AND f.qb_id != ''
+        GROUP BY f.qb_id, f.qb_name, f.season, d.is_starter
+        HAVING SUM(f.play_count) >= ?
+        ORDER BY epa_per_play DESC
+        """,
+        (season, min_plays),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+@app.get("/leaderboard", response_model=List[LeaderboardEntry], tags=["leaderboard"])
+def leaderboard(
+    season: str = Query(..., description="Season, e.g. 2024"),
+    matchup: str = Query(..., description="Personnel matchup with underscores, e.g. 11_vs_Nickel"),
+):
+    """Return QB leaderboard for a specific season and personnel matchup.
+
+    The minimum plays threshold is the 40th percentile of play_count for that
+    matchup/season. Only QBs at or above the threshold are included.
+    Each row includes rank (1-indexed, ordered by EPA/play desc) and the threshold value.
+    """
+    matchup_str = matchup.replace("_", " ")
+    conn = get_db()
+
+    all_rows = conn.execute(
+        """
+        SELECT qb_id, qb_name, season, team,
+               play_count, epa_per_play, success_rate, pass_attempts,
+               sacks, scrambles, avg_cpoe
+        FROM fct_qb_personnel_stats
+        WHERE season = ?
+          AND personnel_matchup = ?
+          AND qb_id IS NOT NULL
+          AND qb_id != ''
+        """,
+        (season, matchup_str),
+    ).fetchall()
+    conn.close()
+
+    if not all_rows:
+        return []
+
+    play_counts = sorted(r["play_count"] for r in all_rows if r["play_count"] is not None)
+    if not play_counts:
+        return []
+
+    # 40th percentile (ceiling index, 1-based → 0-based)
+    threshold_idx = max(0, math.ceil(len(play_counts) * 0.4) - 1)
+    threshold = play_counts[threshold_idx]
+
+    qualified = sorted(
+        [r for r in all_rows if (r["play_count"] or 0) >= threshold],
+        key=lambda r: r["epa_per_play"] if r["epa_per_play"] is not None else -999,
+        reverse=True,
+    )
+
+    return [
+        {**dict(r), "rank": i + 1, "min_plays_threshold": threshold}
+        for i, r in enumerate(qualified)
+    ]
 
 
 @app.get("/matchup/{matchup}", response_model=List[QBStats], tags=["matchup"])
