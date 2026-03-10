@@ -42,7 +42,7 @@ export default function LeaderboardPage() {
       const key = row.personnel_matchup!
       totals.set(key, (totals.get(key) ?? 0) + (row.league_play_count ?? 0))
     }
-    return [...totals.entries()]
+    return Array.from(totals.entries())
       .sort((a, b) => b[1] - a[1])
       .map(([matchup]) => matchup)
   }, [trends])
