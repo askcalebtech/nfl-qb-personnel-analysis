@@ -53,7 +53,7 @@ export default function DashboardPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Controls */}
-      <div className="flex flex-wrap items-end gap-4">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-4">
         {!compareOpen && qbs.length > 0 && (
           <QBSelector qbs={qbs} selectedId={selectedId} onChange={setSelectedId} />
         )}

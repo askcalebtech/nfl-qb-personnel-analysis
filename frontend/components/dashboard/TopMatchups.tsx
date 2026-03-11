@@ -63,9 +63,10 @@ export default function TopMatchups({ stats, minPlays }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm min-h-[400px]">
+    <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
       <h3 className="text-sm font-semibold text-gray-700 mb-4">Top 5 Matchups by EPA/Play</h3>
-      <ResponsiveContainer width="100%" height={350}>
+      <div className="h-[250px] sm:h-[350px]">
+      <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={top5}
           layout="vertical"
@@ -93,6 +94,7 @@ export default function TopMatchups({ stats, minPlays }: Props) {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
+      </div>
     </div>
   )
 }

@@ -48,7 +48,7 @@ export default function MatchupTable({ stats, minPlays }: Props) {
     setPage(0)
   }
 
-  const cols: { key: SortKey; label: string }[] = [
+  const cols: { key: SortKey; label: string; mobileHidden?: boolean }[] = [
     { key: 'personnel_matchup', label: 'Matchup' },
     { key: 'season', label: 'Season' },
     { key: 'play_count', label: 'Plays' },
@@ -56,8 +56,8 @@ export default function MatchupTable({ stats, minPlays }: Props) {
     { key: 'success_rate', label: 'Success%' },
     { key: 'pass_attempts', label: 'Pass Att' },
     { key: 'sacks', label: 'Sacks' },
-    { key: 'scrambles', label: 'Scrambles' },
-    { key: 'avg_cpoe', label: 'Avg CPOE' },
+    { key: 'scrambles', label: 'Scrambles', mobileHidden: true },
+    { key: 'avg_cpoe', label: 'Avg CPOE', mobileHidden: true },
   ]
 
   return (
@@ -70,11 +70,11 @@ export default function MatchupTable({ stats, minPlays }: Props) {
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wide">
-              {cols.map(({ key, label }) => (
+              {cols.map(({ key, label, mobileHidden }) => (
                 <th
                   key={key}
                   onClick={() => toggleSort(key)}
-                  className="px-4 py-2 text-left cursor-pointer select-none hover:bg-gray-100 whitespace-nowrap"
+                  className={`px-4 py-2 text-left cursor-pointer select-none hover:bg-gray-100 whitespace-nowrap${mobileHidden ? ' hidden sm:table-cell' : ''}`}
                 >
                   {label}
                   {sortKey === key && (
@@ -106,8 +106,8 @@ export default function MatchupTable({ stats, minPlays }: Props) {
                 </td>
                 <td className="px-4 py-2 tabular-nums text-gray-900">{r.pass_attempts ?? '—'}</td>
                 <td className="px-4 py-2 tabular-nums text-gray-900">{r.sacks ?? '—'}</td>
-                <td className="px-4 py-2 tabular-nums text-gray-900">{r.scrambles ?? '—'}</td>
-                <td className="px-4 py-2 tabular-nums text-gray-900">{fmt(r.avg_cpoe, 2, true)}</td>
+                <td className="px-4 py-2 tabular-nums text-gray-900 hidden sm:table-cell">{r.scrambles ?? '—'}</td>
+                <td className="px-4 py-2 tabular-nums text-gray-900 hidden sm:table-cell">{fmt(r.avg_cpoe, 2, true)}</td>
               </tr>
             ))}
             {page_rows.length === 0 && (

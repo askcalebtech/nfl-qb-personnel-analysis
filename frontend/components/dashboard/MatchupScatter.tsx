@@ -89,13 +89,14 @@ export default function MatchupScatter({ stats, season }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm min-h-[400px]">
+    <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
       <h3 className="text-sm font-semibold text-gray-700">Matchup Efficiency — Volume vs EPA/Play</h3>
       {allSeasons && (
         <p className="text-xs text-gray-500 mt-0.5 mb-3">Showing all seasons — select a specific season to isolate.</p>
       )}
       {!allSeasons && <div className="mb-4" />}
-      <ResponsiveContainer width="100%" height={350}>
+      <div className="h-[250px] sm:h-[350px]">
+      <ResponsiveContainer width="100%" height="100%">
         <ScatterChart margin={{ top: 20, right: 60, bottom: 60, left: 60 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis
@@ -139,6 +140,7 @@ export default function MatchupScatter({ stats, season }: Props) {
           </Scatter>
         </ScatterChart>
       </ResponsiveContainer>
+      </div>
     </div>
   )
 }
