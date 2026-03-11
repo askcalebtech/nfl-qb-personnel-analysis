@@ -23,7 +23,7 @@ export default function DashboardPage() {
   const [minPlays, setMinPlays] = useState<MinPlays>(20)
   const [allStats, setAllStats] = useState<QBStats[]>([])
   const [compareOpen, setCompareOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {

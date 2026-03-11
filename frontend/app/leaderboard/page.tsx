@@ -25,7 +25,7 @@ export default function LeaderboardPage() {
   const [trends, setTrends] = useState<LeagueTrend[]>([])
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [selectedMatchup, setSelectedMatchup] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   // Load trends once for matchup list
