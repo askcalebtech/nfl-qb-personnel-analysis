@@ -11,6 +11,7 @@ import TopMatchups from '@/components/dashboard/TopMatchups'
 import MatchupTable from '@/components/dashboard/MatchupTable'
 import CompareToggle from '@/components/compare/CompareToggle'
 import ComparePanel from '@/components/compare/ComparePanel'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 const MIN_PLAYS_OPTIONS = [20, 50, 100] as const
 type MinPlays = (typeof MIN_PLAYS_OPTIONS)[number]
@@ -96,7 +97,7 @@ export default function DashboardPage() {
           onSeasonAChange={setSeason}
         />
       ) : loading ? (
-        <div className="text-sm text-gray-500">Loading...</div>
+        <LoadingSpinner />
       ) : (
         <>
           <StatsGrid stats={filteredStats} qbs={qbs} selectedId={selectedId} season={season} />

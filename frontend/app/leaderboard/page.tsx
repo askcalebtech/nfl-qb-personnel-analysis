@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { getLeaderboard, getTrends } from '@/lib/api'
 import type { LeaderboardEntry, LeagueTrend } from '@/types'
 import LeaderboardTable from '@/components/leaderboard/LeaderboardTable'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 const SEASONS = ['2022', '2023', '2024', '2025']
 const VALID_OFFENSE = new Set(['11', '12', '21'])
@@ -128,7 +129,7 @@ export default function LeaderboardPage() {
       )}
 
       {loading ? (
-        <div className="text-sm text-gray-500">Loading...</div>
+        <LoadingSpinner />
       ) : entries.length === 0 ? (
         <div className="rounded-md bg-gray-50 border border-gray-200 px-4 py-8 text-center text-sm text-gray-500">
           No data available for {selectedMatchup} in {season}.

@@ -6,6 +6,7 @@ import type { LeagueTrend } from '@/types'
 import SeasonFilter, { type Season } from '@/components/dashboard/SeasonFilter'
 import MatchupUsageChart from '@/components/trends/MatchupUsageChart'
 import TrendsTable from '@/components/trends/TrendsTable'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 export default function TrendsPage() {
   const [allTrends, setAllTrends] = useState<LeagueTrend[]>([])
@@ -46,7 +47,7 @@ export default function TrendsPage() {
       )}
 
       {loading ? (
-        <div className="text-sm text-gray-500">Loading...</div>
+        <LoadingSpinner />
       ) : (
         <>
           <MatchupUsageChart trends={chartData} />
