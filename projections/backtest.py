@@ -315,9 +315,14 @@ def build_report(seasons, forward, legacy_train, rate_train, legacy_fwd, rate_fw
               f'not independent of the {forward} forward check.',
               f'- DB_PER_GAME is computed over all of {train_label}, including each held-out season. It is one '
               'rounded scale factor that SLOPE rescales against, so the effect is small.',
-              '- The opponent adjustment does not converge for per-dropback ratings on Week 3 predictions. Two weeks '
-              'of games form even cycles, and the loop grows with its iteration count instead of settling, so '
-              'Version C is inflated that week. See the by-week table. Later weeks converge.',
+              '- Version C uses a direct solve of the opponent adjustment because the original 50-iteration loop does '
+              'not converge on sparse early-season schedules. Versions A and B keep the loop as-is, as it is part '
+              'of today\'s formula. The two methods agree once the schedule is connected and the loop has settled, '
+              'to within 1e-6 from about Week 8 on 2022-2025 data.',
+              '- The direct solve changes early values but does not make them reliable. After one game each it '
+              'splits a gap evenly between offense and defense, where the loop gave the offense all of it. Week 3 '
+              'ratings can still be large, because two weeks of games leave long cycles that barely separate '
+              'offense from defense. See the by-week table.',
               '- With flat weights, K and REG only act through K/REG once SLOPE is refit, so grid pairs with the same '
               'ratio predict identically. The first such pair in the grid is reported.', '']
     return '\n'.join(lines)

@@ -1,12 +1,14 @@
 from dataclasses import replace
 
+import numpy as np
 import pandas as pd
 import pytest
 from pytest import approx
 
-from projections.constants import DB_PER_GAME, LEGACY_PARAMS
+from projections.constants import DB_PER_GAME, LEGACY_PARAMS, TEAMS
 from projections.game_model import predict
-from projections.ratings import build_ratings_rate, dropbacks, raw_values
+from projections.ratings import (Raw, _opponent_adjust, _opponent_solve, _rate_values, build_ratings_legacy,
+                                 build_ratings_rate, dropbacks, raw_values)
 from tests.projections.test_ratings import frame, games, play
 
 
@@ -163,3 +165,130 @@ def test_shrink_weight_rises_with_dropbacks():
     # weight n/(n+s) with n = 6 vs 24 dropbacks
     ratio = (24 / 124) / (6 / 106)
     assert b.off_pred['BUF'] / a.off_pred['BUF'] == approx(ratio)
+
+
+# --- direct solve of the opponent adjustment --------------------------------------------------------------------
+
+def _random_schedule(weeks, seed):
+    """Every team plays once a week against a random opponent."""
+    rng = np.random.default_rng(seed)
+    g = []
+    for w in range(1, weeks + 1):
+        order = list(rng.permutation(TEAMS))
+        for j in range(16):
+            g.append((f'w{w}_{j}', w, order[2*j], order[2*j + 1], 3))
+    return games(g)
+
+
+def _random_rates(seed):
+    rng = np.random.default_rng(seed)
+    return Raw(off={t: float(v) for t, v in zip(TEAMS, rng.normal(0, 1.5, 32))},
+               def_={t: float(v) for t, v in zip(TEAMS, rng.normal(0, 1.5, 32))},
+               lg=6.0, off_n={t: 300 for t in TEAMS}, def_n={t: 300 for t in TEAMS})
+
+
+# Two separate 4-team cycles after two weeks. Each side's (dropbacks, yards) differ a lot by game, so dropback-weighted
+# rates leave an imbalance the loop cannot settle: game id, home, away, home side, away side.
+_SPARSE = [('w1_0', 1, 'BUF', 'NE', (60, 14.0), (10, 2.0)), ('w1_1', 1, 'NYJ', 'MIA', (10, 3.0), (60, 12.0)),
+           ('w2_0', 2, 'BUF', 'MIA', (10, 0.0), (60, 3.0)), ('w2_1', 2, 'NYJ', 'NE', (60, 15.0), (10, 1.0)),
+           ('w1_2', 1, 'PIT', 'CIN', (55, 13.0), (12, 4.0)), ('w1_3', 1, 'CLE', 'BAL', (12, 2.0), (55, 11.0)),
+           ('w2_2', 2, 'PIT', 'BAL', (12, 1.0), (55, 4.0)), ('w2_3', 2, 'CLE', 'CIN', (55, 14.0), (12, 3.0))]
+
+
+def _sparse_season():
+    g, rows = [], []
+    for gid_, week, home, away, (nh, yh), (na, ya) in _SPARSE:
+        g.append((gid_, week, home, away, 3))
+        rows += [play(game_id=gid_, posteam=home, defteam=away, passing_yards=yh, passer_player_name=f'{home}-QB')
+                 for _ in range(nh)]
+        rows += [play(game_id=gid_, posteam=away, defteam=home, passing_yards=ya, passer_player_name=f'{away}-QB')
+                 for _ in range(na)]
+    return games(g), frame(rows)
+
+
+def _max_abs(*ds):
+    return max(abs(v) for d in ds for v in d.values())
+
+
+@pytest.mark.parametrize('weeks,seed', [(9, 1), (12, 2), (17, 3)])
+def test_solve_matches_converged_loop_on_connected_schedule(weeks, seed):
+    done = _random_schedule(weeks, seed)
+    rates = _random_rates(seed)
+    loop_o, loop_d = _opponent_adjust(done, rates)
+    solve_o, solve_d = _opponent_solve(done, rates)
+    assert max(abs(loop_o[t] - solve_o[t]) for t in TEAMS) < 1e-6
+    assert max(abs(loop_d[t] - solve_d[t]) for t in TEAMS) < 1e-6
+
+
+def test_solve_satisfies_fixed_point_with_mean_zero_units():
+    done = _random_schedule(9, 4)
+    rates = _random_rates(4)
+    O, D = _opponent_solve(done, rates)
+    assert np.mean(list(O.values())) == approx(0, abs=1e-9) and np.mean(list(D.values())) == approx(0, abs=1e-9)
+    opps = {t: [] for t in TEAMS}
+    for r in done.itertuples():
+        opps[r.home_team].append(r.away_team)
+        opps[r.away_team].append(r.home_team)
+    nO = {t: rates.off[t] + np.mean([D[x] for x in opps[t]]) for t in TEAMS}
+    nD = {t: rates.def_[t] + np.mean([O[x] for x in opps[t]]) for t in TEAMS}
+    mo, md = np.mean(list(nO.values())), np.mean(list(nD.values()))
+    assert all(O[t] == approx(nO[t] - mo, abs=1e-9) and D[t] == approx(nD[t] - md, abs=1e-9) for t in TEAMS)
+
+
+def test_sparse_schedule_makes_loop_grow_but_solve_stays_bounded():
+    done, pbp = _sparse_season()
+    db = dropbacks(pbp)
+    raw = raw_values(db)
+    rates = _rate_values(db, raw)
+    biggest_raw = _max_abs(rates.off, rates.def_)
+    assert biggest_raw > 0
+
+    # The loop runs away on this schedule, which is why the rate build must not use it
+    assert _max_abs(*_opponent_adjust(done, rates)) > 3 * biggest_raw
+
+    O, D = _opponent_solve(done, rates)
+    assert np.isfinite(list(O.values()) + list(D.values())).all()
+    assert _max_abs(O, D) <= 2 * biggest_raw
+
+    # The rate build uses the solve. Every team has one QB, so season value / dropbacks is the adjusted rate.
+    rs = build_ratings_rate(done, pbp, {}, LEGACY_PARAMS, None)
+    for t in TEAMS:
+        assert rs.off_season[t] == approx(O[t] * raw.off_n[t])
+        assert rs.def_season[t] == approx(D[t] * raw.def_n[t])
+
+
+def test_solve_two_team_case_splits_the_gap_evenly():
+    done, pbp = _season(3)     # BUF gains 30 a dropback and NE 10; offense and defense can't be told apart
+    db = dropbacks(pbp)
+    O, D = _opponent_solve(done, _rate_values(db, raw_values(db)))
+    assert O['BUF'] == approx(5) and D['BUF'] == approx(5)
+    assert O['NE'] == approx(-5) and D['NE'] == approx(-5)
+
+
+def test_solve_teams_without_games_stay_zero():
+    done, pbp = _sparse_season()
+    db = dropbacks(pbp)
+    O, D = _opponent_solve(done, _rate_values(db, raw_values(db)))
+    assert O['KC'] == 0.0 and D['KC'] == 0.0
+    empty = _opponent_solve(games([]), _random_rates(1))
+    assert all(v == 0.0 for d in empty for v in d.values())
+
+
+def test_solve_is_stable():
+    done, pbp = _sparse_season()
+    db = dropbacks(pbp)
+    rates = _rate_values(db, raw_values(db))
+    first = _opponent_solve(done, rates)
+    assert _opponent_solve(done, rates) == first      # exact, not approximate
+    assert _opponent_solve(done.iloc[::-1], rates) == first
+    a = build_ratings_rate(done, pbp, {}, LEGACY_PARAMS, 100.0)
+    b = build_ratings_rate(done, pbp, {}, LEGACY_PARAMS, 100.0)
+    assert a.off_pred == b.off_pred and a.def_pred == b.def_pred
+
+
+def test_legacy_build_keeps_the_loop():
+    done, pbp = _sparse_season()
+    rs = build_ratings_legacy(done, pbp, {}, LEGACY_PARAMS)
+    loop_o, loop_d = _opponent_adjust(done, raw_values(dropbacks(pbp)))
+    assert rs.off_season == approx(loop_o)
+    assert rs.def_season == approx(loop_d)

@@ -451,7 +451,7 @@ def test_main_writes_report(tmp_path, monkeypatch):
     text = out.read_text()
     for needle in ['Version A', 'Version B', 'Version C', 'in-sample', 'Weeks 6-8', 'Early', 'Mid', 'Late',
                    'leave-one-season-out', 'no late-season games', 'DB_PER_GAME', 'Calibration', 'Forward check',
-                   'Early season by week']:
+                   'Early season by week', 'direct solve', 'keep the loop']:
         assert needle in text, needle
     assert not re.search(r'\bnan\b', text.lower())
 
