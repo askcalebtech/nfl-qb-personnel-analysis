@@ -16,14 +16,13 @@ python3 -m projections.run --season 2026 \
 - `--starters` is a committed JSON file of QB overrides, e.g. `{"BAL": "J.Fagnano"}`.
 - `--data-dir DIR` sets where the nflverse downloads go (default: a new temp directory outside the repo). `--no-download` reuses the files already in `--data-dir` and requires it.
 - Validation runs before anything is written: 32 teams, probabilities in 0-1, every completed game present in play-by-play, no non-finite numbers, and `through_week` not lower than the published file's. On failure the command exits nonzero and leaves the output and snapshot untouched.
-- The output is rewritten only when something other than `generated_at` changed, and the snapshot (`{season}-through-wk{NN}.json`) is written only then, so a no-op rerun leaves the repo clean. The last line reads `OK: through week N, M games remaining, changed=True/False`.
+- The output is rewritten only when something other than `generated_at` changed. The snapshot (`{season}-through-wk{NN}.json`) for `through_week` is written when the output changes or the snapshot is missing, and isn't overwritten once any game after `through_week` has been played, so a no-op rerun leaves the repo clean. `through_week` is the last week in which every scheduled game has a result. The last line reads `OK: through week N, M games remaining, changed=True/False`.
 - Unknown-starter warnings are printed and also stored in the JSON's `warnings`.
+- A run takes about 12 seconds; almost all of that is the Monte Carlo.
 
 ### Annual season bump
 
 The workflow in `.github/workflows/projections.yml` hardcodes `--season 2026`. Change it each year (and the season in this README's commands) before the new season starts, or the weekly job keeps rebuilding last season.
-
-A run takes about 12 seconds; almost all of that is the Monte Carlo.
 
 ## Data sources
 
@@ -130,13 +129,9 @@ A refit is manual, and weekly runs never refit.
 
 ## Weekly workflow
 
-A cloud scheduled task named "Weekly NFL model update" runs Tuesdays at 8:23 AM ET. Each run:
-1. runs the pipeline,
-2. checks QB news (injuries, injured reserve, benchings, returns) and reruns with `--starters` overrides where needed,
-3. rewrites the Claude Doc "2026 NFL Remaining Games — Model Win Probabilities" (https://claude.ai/artifact/7521qze4Y6fgLeikoec1XW): the method section stays; everything from "## Season outlook and remaining games" down is replaced with `report.md`,
-4. pushes a short summary covering QB overrides, odds changes, the NFC North race, and the 3 biggest model-vs-market gaps.
-
-The scheduled task embeds its own copy of the script. **If you change the `projections/` package here, update the task's prompt too**, or it will keep running the old version.
+- `.github/workflows/projections.yml` runs Tuesdays at 11:30 and 15:30 UTC, on a push to `projections/starters.json` on `main`, and on manual dispatch. A read-only `build` job runs tests and the model; a `publish` job commits only `frontend/public/data/projections.json` and `projections/snapshots/` if they changed. A failed run leaves the last good file live, and GitHub's failed-run email is the alert. Vercel redeploys on each commit.
+- The cloud routine "Weekly NFL QB check and summary" (https://claude.ai/code/routines/trig_01U9cRtcJn41vnwH3KqNNTuz), Tuesdays at 13:23 UTC (8:23 AM Eastern during standard time), checks QB news, edits `projections/starters.json` when needed, and sends a summary linking to https://nfl-qb-personnel-analysis.vercel.app/projections. It runs the repo's code and has no copy of the model. Starter overrides belong in `projections/starters.json`.
+- The older "Weekly NFL model update" task and its Claude Doc are still running during the transition. They use the old constants, so their numbers won't match the page. They'll be retired after the new routine's first good run.
 
 QB override notes as of Nov 3, 2026:
 - `BAL`: J.Fagnano. Jackson is on injured reserve with a thumb injury, and Huntley is out with a toe injury. Restore `L.Jackson` when he returns.
@@ -144,7 +139,7 @@ QB override notes as of Nov 3, 2026:
 
 ## Owner preferences
 
-- The user (Caleb) mostly follows the **NFC North** (Vikings, Packers, Lions, Bears). Game-by-game detail is wanted for those four teams only; the rest of the league is shown as standings.
+- The page is league-wide, with filters by conference, division and team. The user (Caleb) mostly follows the **NFC North** (Vikings, Packers, Lions, Bears), and the Tuesday summary covers that race.
 - Present expected wins plus division, playoff and #1-seed odds. Show margins as "Team by X.X" with a win %.
 - Keep betting-market data separate, for display and comparison only.
 - Prefer showing the calculation behind a surprising number (matchup components, nudges, QB adjustment) over asserting it.
