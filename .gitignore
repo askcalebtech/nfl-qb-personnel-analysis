@@ -24,3 +24,10 @@ dist/
 
 # OS
 .DS_Store
+airflow/airflow.db
+airflow/airflow.cfg
+airflow/logs/
+airflow/standalone_admin_password.txt
+airflow/webserver_config.py
+nfl_out/
+10730.jpg

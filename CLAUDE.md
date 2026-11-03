@@ -56,6 +56,9 @@ nfl-qb-personnell-analysis/       # Note: "personnell" is a typo in the dir name
 │           └── _marts_schema.yml
 ├── api/                           # FastAPI app (6 endpoints)
 ├── airflow/                       # Airflow DAG
+├── projections/                   # Weekly NFL game projections model (run via `python3 -m projections.run`)
+│   ├── snapshots/                 # Weekly snapshot history
+│   └── starters.json              # Starting QB overrides
 ├── frontend/                      # Next.js dashboard (QB Dashboard, Leaderboard, League Trends)
 ├── tests/                         # Test utilities
 ├── data/                          # GITIGNORED — never commit anything in here
@@ -166,6 +169,7 @@ Always import the session from `spark/utils/spark_session.py` — do not create 
 | FastAPI layer | ✅ Done | 6 endpoints (api/app.py) |
 | Airflow DAG | ✅ Done | 1 DAG, 6 tasks |
 | Frontend | ✅ Done | Next.js dashboard — QB Dashboard, Leaderboard, League Trends |
+| Projections page | ✅ Done | `/projections`; data from `projections/` model, published weekly by `.github/workflows/projections.yml` |
 
 ---
 
@@ -208,6 +212,8 @@ Claude Code should **always ask** before:
 - Modifying `load_to_sqlite.py` or `spark/utils/` utilities
 - Running the full pipeline end to end (takes 10-15 min)
 - Pushing to GitHub
+
+Exception: weekly automation may push directly to `main` for `frontend/public/data/projections.json`, `projections/snapshots/` and `projections/starters.json` only; every other push still needs approval.
 
 ---
 
