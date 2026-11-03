@@ -1,7 +1,7 @@
 'use client'
 
 import { GameRow } from './GameRow'
-import type { Scope } from '@/lib/projections'
+import { isPastGameday, type Scope } from '@/lib/projections'
 import type { ProjectionGame, ProjectionTeam } from '@/types'
 
 interface Props {
@@ -16,6 +16,8 @@ interface Props {
 export function GamesSection({ week, weeks, games, teams, scope, onWeekChange }: Props) {
   const byCode = new Map(teams.map((t) => [t.team, t]))
   const scopeTeam = scope.kind === 'team' ? byCode.get(scope.value) : undefined
+
+  const anyPlayed = games.some((g) => isPastGameday(g.gameday, new Date()))
 
   let empty: string | null = null
   if (week === null) empty = 'The regular season is complete.'
@@ -48,6 +50,12 @@ export function GamesSection({ week, weeks, games, teams, scope, onWeekChange }:
       {empty ? (
         <p className="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-700">{empty}</p>
       ) : (
+        <>
+        {anyPlayed && (
+          <p className="text-sm text-amber-900">
+            Some games below have been played; their results are not loaded yet.
+          </p>
+        )}
         <ul className="space-y-2">
           {games.map((g) => {
             const home = byCode.get(g.home)
@@ -55,6 +63,7 @@ export function GamesSection({ week, weeks, games, teams, scope, onWeekChange }:
             return home && away ? <GameRow key={g.game_id} game={g} home={home} away={away} /> : null
           })}
         </ul>
+        </>
       )}
     </section>
   )

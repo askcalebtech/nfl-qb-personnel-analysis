@@ -42,6 +42,15 @@ export function defaultWeek(games: ProjectionGame[]): number | null {
   return games.length ? Math.min(...games.map((g) => g.week)) : null
 }
 
+/** True when gameday (YYYY-MM-DD) is before now's local calendar date. Missing or malformed gameday is false. */
+export function isPastGameday(gameday: string | null | undefined, now: Date): boolean {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(gameday ?? '')
+  if (!m) return false
+  const day = Number(m[1]) * 10000 + Number(m[2]) * 100 + Number(m[3])
+  const today = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate()
+  return day < today
+}
+
 const STALE_DAYS = 8
 
 export function isStale(generatedAt: string, now: Date, gamesRemaining: number): boolean {

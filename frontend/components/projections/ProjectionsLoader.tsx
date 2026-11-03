@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ProjectionsView } from './ProjectionsView'
 import type { ProjectionsData } from '@/types'
 
@@ -8,7 +8,10 @@ export function ProjectionsLoader() {
   const [data, setData] = useState<ProjectionsData | null>(null)
   const [failed, setFailed] = useState(false)
 
+  const latest = useRef(0)
+
   const load = useCallback(() => {
+    const id = ++latest.current
     setFailed(false)
     setData(null)
     fetch('/data/projections.json', { cache: 'no-cache' })
@@ -16,8 +19,12 @@ export function ProjectionsLoader() {
         if (!r.ok) throw new Error(String(r.status))
         return r.json() as Promise<ProjectionsData>
       })
-      .then(setData)
-      .catch(() => setFailed(true))
+      .then((d) => {
+        if (id === latest.current) setData(d)
+      })
+      .catch(() => {
+        if (id === latest.current) setFailed(true)
+      })
   }, [])
 
   useEffect(load, [load])

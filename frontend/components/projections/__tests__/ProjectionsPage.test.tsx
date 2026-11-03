@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { StrictMode } from 'react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -33,13 +34,44 @@ const game = (week: number, home: string, away: string): ProjectionGame => ({
   components: { home_matchup: 0, away_matchup: 0, matchup_points: 1, hfa: 0, nudge: 0, home_qb_adj_pts: 0, away_qb_adj_pts: 0 },
 })
 const base: ProjectionsData = {
-  season: 2026, through_week: 8, generated_at: new Date().toISOString(), league_anya: 6,
+  season: 2026, through_week: 8, last_result_date: null, generated_at: new Date().toISOString(), league_anya: 6,
   model_version: '1', warnings: [],
   teams: [team('AAA', 'Alphas', 'AFC East'), team('BBB', 'Bravos', 'AFC East')],
   games: [game(9, 'AAA', 'BBB'), game(10, 'BBB', 'AAA')],
 }
 
 describe('ProjectionsView', () => {
+  test('header shows season, through week and result date', () => {
+    render(<ProjectionsView data={{ ...base, last_result_date: '2026-11-02' }} />)
+    const p = screen.getByRole('heading', { level: 1 }).nextElementSibling as HTMLElement
+    expect(p.textContent).toContain('2026 season · Through Week 8')
+    expect(p.textContent).toContain('Results through Nov 2, 2026')
+  })
+
+  test('header omits result date when absent', () => {
+    render(<ProjectionsView data={{ ...base, last_result_date: null }} />)
+    const p = screen.getByRole('heading', { level: 1 }).nextElementSibling as HTMLElement
+    expect(p.textContent).toContain('2026 season · Through Week 8')
+    expect(p.textContent).not.toContain('Results through')
+  })
+
+  test('past gameday shows tag and section note', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 10, 3, 12))
+    try {
+      const g = { ...game(9, 'AAA', 'BBB'), gameday: '2026-11-02' }
+      const { unmount } = render(<ProjectionsView data={{ ...base, games: [g] }} />)
+      expect(screen.getByText('Played, result not loaded yet')).toBeTruthy()
+      expect(screen.getByText(/results are not loaded yet/i)).toBeTruthy()
+      unmount()
+      render(<ProjectionsView data={{ ...base, games: [{ ...g, gameday: '2026-11-03' }] }} />)
+      expect(screen.queryByText('Played, result not loaded yet')).toBeNull()
+      expect(screen.queryByText(/results are not loaded yet/i)).toBeNull()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   test('warnings from the JSON are displayed', () => {
     render(<ProjectionsView data={{ ...base, warnings: ['Odds file missing for week 12'] }} />)
     expect(screen.getByText(/Odds file missing for week 12/)).toBeTruthy()
@@ -112,6 +144,28 @@ describe('ProjectionsLoader', () => {
     expect(screen.queryByRole('alert')).toBeNull()
     expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(fetchMock.mock.calls[1][0]).toBe('/data/projections.json')
+  })
+
+  test('an older response cannot overwrite a newer one', async () => {
+    const resolvers: Array<(v: unknown) => void> = []
+    const fetchMock = vi.fn().mockImplementation(
+      () => new Promise((res) => resolvers.push(res)),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    // StrictMode runs the load effect twice, so two requests are in flight.
+    render(
+      <StrictMode>
+        <ProjectionsLoader />
+      </StrictMode>,
+    )
+    await waitFor(() => expect(resolvers.length).toBe(2))
+    const reply = (season: number) => ({ ok: true, status: 200, json: async () => ({ ...base, season }) })
+    resolvers[1](reply(2031)) // newer request answers first
+    await waitFor(() => expect(screen.getByText(/2031 season/)).toBeTruthy())
+    resolvers[0](reply(2020)) // older request answers late
+    await new Promise((r) => setTimeout(r, 20))
+    expect(screen.getByText(/2031 season/)).toBeTruthy()
+    expect(screen.queryByText(/2020 season/)).toBeNull()
   })
 
   test('network error also shows the alert', async () => {

@@ -56,6 +56,21 @@ def _records(done):
     return {t: f"{w}-{l}" + (f"-{ti}" if ti else "") for t, (w, l, ti) in rec.items()}
 
 
+def _through_week(done, todo) -> int:
+    """Last week in which every scheduled game has a result (0 if none)."""
+    if not len(done):
+        return 0
+    weeks = done.week
+    if len(todo):
+        weeks = weeks[weeks < todo.week.min()]
+    return int(weeks.max()) if len(weeks) else 0
+
+
+def has_later_results(done, through_week) -> bool:
+    """True once any game after through_week has been played (a partial week is under way)."""
+    return bool(len(done) and (done.week > through_week).any())
+
+
 def build_payload(season, done, todo, rs, raw, games, sim, model_version=None, generated_at=None) -> dict:
     from .constants import MODEL_VERSION
     record = _records(done)
@@ -78,8 +93,9 @@ def build_payload(season, done, todo, rs, raw, games, sim, model_version=None, g
             neutral=bool(g['neutral']), stadium=g['stadium'], p_home=_num(g['p_home']), margin=_num(g['margin']),
             nudge=_num(g['nudge']), mkt_home=_num(g['mkt_home']), spread=_num(g['spread']),
             components={k: _num(v) for k, v in c.items()}))
-    through = int(done.week.max()) if len(done) else 0
-    return dict(season=int(season), through_week=through,
+    through = _through_week(done, todo)
+    last_result = _txt(done.gameday.max()) if len(done) and 'gameday' in done else None
+    return dict(season=int(season), through_week=through, last_result_date=last_result,
                 generated_at=generated_at or datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
                 league_anya=_num(raw.lg, 4) if len(done) else None,
                 model_version=model_version or MODEL_VERSION,
@@ -116,6 +132,9 @@ def validate(payload, done, pbp, previous: Optional[dict] = None) -> None:
     missing = set(done.game_id) - set(pbp.game_id)
     if missing:
         raise ValueError(f"{len(missing)} completed games have no play-by-play rows: {sorted(missing)[:5]}")
+    tw = payload.get('through_week')
+    if not isinstance(tw, int) or not (0 <= tw <= 18):
+        raise ValueError(f"through_week {tw} outside 0-18")
     if previous and previous.get('season') == payload.get('season') \
             and payload['through_week'] < previous.get('through_week', 0):
         raise ValueError(f"through_week {payload['through_week']} is lower than published "
@@ -157,17 +176,21 @@ def snapshot_path(payload, dir) -> str:
     return os.path.join(dir, f"{payload['season']}-through-wk{payload['through_week']:02d}.json")
 
 
-def write_snapshot(payload, dir) -> str:
+def write_snapshot(payload, dir, locked=False) -> str:
+    """Write the snapshot for payload's through_week. When locked (a game after through_week has been played),
+    an existing snapshot is kept so the pre-game predictions survive."""
     text = _dumps(payload)
     path = snapshot_path(payload, dir)
+    if locked and os.path.exists(path):
+        return path
     _atomic_write(path, text)
     return path
 
 
-def publish(payload, out, snapshots) -> bool:
+def publish(payload, out, snapshots, locked=False) -> bool:
     """Write the output if changed, and the snapshot if the output changed or this week's snapshot is missing.
-    Returns whether the output changed."""
+    Returns whether the output changed. See write_snapshot for locked."""
     changed = write_if_changed(payload, out)
     if changed or not os.path.exists(snapshot_path(payload, snapshots)):
-        write_snapshot(payload, snapshots)
+        write_snapshot(payload, snapshots, locked)
     return changed

@@ -7,7 +7,7 @@ import tempfile
 
 from .constants import PARAMS
 from .data import download, load
-from .output import build_games, build_payload, publish, validate
+from .output import build_games, build_payload, has_later_results, publish, validate
 from .ratings import build_ratings, dropbacks, raw_values
 from .simulate import simulate
 
@@ -48,7 +48,8 @@ def main(argv=None) -> int:
             print(f"WARNING: existing {args.out} is unreadable ({e}); treating as no previous file")
     try:
         validate(payload, done, pbp, previous)
-        changed = publish(payload, args.out, args.snapshots)
+        changed = publish(payload, args.out, args.snapshots,
+                          locked=has_later_results(done, payload['through_week']))
     except ValueError as e:
         print(f"FAILED: {e}", file=sys.stderr)
         return 1

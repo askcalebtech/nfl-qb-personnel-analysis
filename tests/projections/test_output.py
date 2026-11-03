@@ -229,3 +229,61 @@ def test_failed_write_leaves_no_tmp_and_snapshot_is_atomic(tmp_path, monkeypatch
     with pytest.raises(OSError):
         write_if_changed(dict(payload, through_week=3), str(tmp_path / 'p.json'))
     assert not (tmp_path / 'p.json.tmp').exists()
+
+
+def _g(gid, week, day):
+    return dict(game_id=gid, week=week, gameday=day, home_team='BUF', away_team='NE', result=1)
+
+
+def test_through_week_partial_week_is_previous_week():
+    done = pd.DataFrame([_g('a', 1, '2026-09-10'), _g('b', 2, '2026-09-17'), _g('c', 3, '2026-09-24')])
+    todo = _todo()  # week 3 and 4 games unplayed: week 3 is only partly complete
+    payload, *_ = make(done=done, todo=todo)
+    assert payload['through_week'] == 2
+    assert payload['last_result_date'] == '2026-09-24'
+
+
+def test_through_week_all_complete():
+    payload, *_ = make(todo=_todo().iloc[0:0])
+    assert payload['through_week'] == 2 and payload['last_result_date'] == '2026-09-02'
+
+
+def test_through_week_none_complete():
+    payload, *_ = make(done=_done().iloc[0:0])
+    assert payload['through_week'] == 0 and payload['last_result_date'] is None
+
+
+def test_validate_through_week_bounds():
+    payload, done, pbp, _ = make()
+    with pytest.raises(ValueError, match='through_week'):
+        validate(dict(payload, through_week=19), done, pbp)
+    with pytest.raises(ValueError, match='through_week'):
+        validate(dict(payload, through_week=-1), done, pbp)
+
+
+def test_snapshot_locked_keeps_existing_but_writes_missing(tmp_path):
+    payload, *_ = make()
+    p = write_snapshot(payload, str(tmp_path))
+    write_snapshot(dict(payload, league_anya=1.0), str(tmp_path), locked=True)
+    assert json.load(open(p))['league_anya'] != 1.0
+    other = str(tmp_path / 'new')
+    p2 = write_snapshot(dict(payload, league_anya=1.0), other, locked=True)
+    assert json.load(open(p2))['league_anya'] == 1.0
+
+
+def test_publish_keeps_snapshot_once_later_game_played_but_overwrites_before(tmp_path):
+    payload, *_ = make()
+    out, snaps = str(tmp_path / 'p.json'), str(tmp_path / 'snaps')
+    publish(payload, out, snaps)
+    snap = tmp_path / 'snaps' / '2026-through-wk02.json'
+    assert publish(dict(payload, league_anya=1.0), out, snaps, locked=False) is True
+    assert json.load(open(snap))['league_anya'] == 1.0  # Tuesday starter change lands
+    assert publish(dict(payload, league_anya=2.0), out, snaps, locked=True) is True
+    assert json.load(open(snap))['league_anya'] == 1.0  # preserved
+    assert json.load(open(out))['league_anya'] == 2.0
+
+
+def test_has_later_results():
+    from projections.output import has_later_results
+    d = _done()
+    assert has_later_results(d, 1) and not has_later_results(d, 2) and not has_later_results(d.iloc[0:0], 0)

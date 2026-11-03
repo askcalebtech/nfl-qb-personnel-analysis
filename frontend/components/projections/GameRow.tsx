@@ -2,6 +2,7 @@
 
 import { useId, useState } from 'react'
 import { fmt, marginLabel, pct } from '@/lib/format'
+import { isPastGameday } from '@/lib/projections'
 import type { ProjectionGame, ProjectionTeam } from '@/types'
 
 interface Props {
@@ -41,6 +42,7 @@ export function GameRow({ game, home, away, showWeek = false }: Props) {
         ? `${home.name} ${pct(game.mkt_home)}`
         : `${away.name} ${pct(1 - game.mkt_home)}`
   const day = formatDay(game.gameday)
+  const played = isPastGameday(game.gameday, new Date())
 
   return (
     <li className="rounded-lg border border-gray-200 bg-white p-3 text-gray-900">
@@ -54,6 +56,11 @@ export function GameRow({ game, home, away, showWeek = false }: Props) {
               .filter(Boolean)
               .join(' · ')}
           </p>
+          {played && (
+            <p className="mt-1 inline-block rounded border border-amber-400 bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-900">
+              Played, result not loaded yet
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
           <div>

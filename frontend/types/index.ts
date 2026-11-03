@@ -151,6 +151,7 @@ export interface ProjectionGame {
 export interface ProjectionsData {
   season: number
   through_week: number
+  last_result_date: string | null // YYYY-MM-DD, latest completed game
   generated_at: string // ISO UTC
   league_anya: number | null
   model_version: string

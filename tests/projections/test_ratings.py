@@ -127,3 +127,10 @@ def test_season_ratings_do_not_depend_on_params_but_prediction_ratings_scale_wit
     c = build_ratings(done, pbp, {}, Params(0.4, 800.0, 0.01, 2.0, 13.0, 150, -1.5, 3.0, 0.5, 1.0, 25))
     assert c.off_season == a.off_season
     assert c.off_pred['BUF'] == pytest.approx(a.off_pred['BUF']/2)
+
+
+def test_unknown_starter_team_code_warns():
+    pbp = _two_team_pbp()
+    rs = build_ratings(games([('g1', 1, 'BUF', 'NE', 3)]), pbp, {'LAR': 'M.Stafford', 'NE': 'X.Y'}, PARAMS)
+    assert 'starters: unknown team code LAR' in rs.warnings
+    assert 'LAR' not in rs.starter

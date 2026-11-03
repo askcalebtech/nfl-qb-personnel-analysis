@@ -115,6 +115,9 @@ def _qb_rate_adjustments(db, done, overrides, params, raw):
         qmix[t] = (qt['size']*qt.rate).sum() / qt['size'].sum() if len(qt) else 0.0
     starter = pick_starters(db, done, overrides)
     warnings, adj = [], {}
+    for k in sorted(overrides):
+        if k not in TEAMS:
+            warnings.append(f"starters: unknown team code {k}")
     for t in TEAMS:
         if t in overrides and (t, starter[t]) not in qrate:
             warnings.append(f"{t}: starter {starter[t]} has no dropbacks for this team this season; using prior")

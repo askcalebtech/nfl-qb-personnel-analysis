@@ -19,6 +19,10 @@ python3 -m projections.run --season 2026 \
 - The output is rewritten only when something other than `generated_at` changed, and the snapshot (`{season}-through-wk{NN}.json`) is written only then, so a no-op rerun leaves the repo clean. The last line reads `OK: through week N, M games remaining, changed=True/False`.
 - Unknown-starter warnings are printed and also stored in the JSON's `warnings`.
 
+### Annual season bump
+
+The workflow in `.github/workflows/projections.yml` hardcodes `--season 2026`. Change it each year (and the season in this README's commands) before the new season starts, or the weekly job keeps rebuilding last season.
+
 A run takes about 12 seconds; almost all of that is the Monte Carlo.
 
 ## Data sources

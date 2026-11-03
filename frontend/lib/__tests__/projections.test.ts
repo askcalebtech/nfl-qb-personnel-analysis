@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import {
-  defaultWeek, gamesInScope, isStale, parseScope, rankRatings, scopeToParam, teamsInScope, type Scope,
+  defaultWeek, gamesInScope, isPastGameday, isStale, parseScope, rankRatings, scopeToParam, teamsInScope, type Scope,
 } from '@/lib/projections'
 import type { ProjectionGame, ProjectionTeam } from '@/types'
 
@@ -87,5 +87,29 @@ describe('isStale', () => {
   })
   test('isStale false when no games remain', () => {
     expect(isStale('2026-11-03T00:00:00Z', now, 0)).toBe(false)
+  })
+})
+
+describe('isPastGameday', () => {
+  const now = new Date(2026, 10, 3, 0, 5) // Nov 3 2026, local, just after midnight
+  const late = new Date(2026, 10, 3, 23, 55)
+  test('today is not past', () => {
+    expect(isPastGameday('2026-11-03', now)).toBe(false)
+    expect(isPastGameday('2026-11-03', late)).toBe(false)
+  })
+  test('yesterday is past', () => {
+    expect(isPastGameday('2026-11-02', now)).toBe(true)
+    expect(isPastGameday('2026-11-02', late)).toBe(true)
+  })
+  test('tomorrow, null, missing and malformed are not past', () => {
+    expect(isPastGameday('2026-11-04', now)).toBe(false)
+    expect(isPastGameday(null, now)).toBe(false)
+    expect(isPastGameday(undefined, now)).toBe(false)
+    expect(isPastGameday('', now)).toBe(false)
+    expect(isPastGameday('soon', now)).toBe(false)
+  })
+  test('crosses month and year boundaries', () => {
+    expect(isPastGameday('2026-12-31', new Date(2027, 0, 1))).toBe(true)
+    expect(isPastGameday('2026-10-31', new Date(2026, 10, 1))).toBe(true)
   })
 })

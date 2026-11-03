@@ -10,6 +10,12 @@ import { TeamSchedule } from './TeamSchedule'
 import { defaultWeek, gamesInScope, isStale, parseScope, teamsInScope } from '@/lib/projections'
 import type { ProjectionsData } from '@/types'
 
+function formatResultDate(day: string): string {
+  const [y, m, d] = day.split('-').map(Number)
+  if (!y || !m || !d) return day
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
 export function ProjectionsView({ data }: { data: ProjectionsData }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -44,7 +50,9 @@ export function ProjectionsView({ data }: { data: ProjectionsData }) {
       <header className="space-y-2">
         <h1 className="text-2xl font-bold text-gray-900">ANY/A Projections</h1>
         <p className="text-sm text-gray-700">
-          Through Week {data.through_week} · Generated {generatedText}
+          {data.season} season · Through Week {data.through_week}
+          {data.last_result_date ? ` · Results through ${formatResultDate(data.last_result_date)}` : ''} · Generated{' '}
+          {generatedText}
         </p>
         {stale && (
           <p className="rounded border border-amber-400 bg-amber-50 p-3 text-sm font-medium text-amber-900">
