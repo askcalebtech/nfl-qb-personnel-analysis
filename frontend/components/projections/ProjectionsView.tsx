@@ -38,7 +38,6 @@ export function ProjectionsView({ data }: { data: ProjectionsData }) {
   const stale = isStale(data.generated_at, new Date(), data.games.length)
   const generated = new Date(data.generated_at)
   const generatedText = Number.isNaN(generated.getTime()) ? data.generated_at : generated.toLocaleString()
-  const team = scope.kind === 'team' ? data.teams.find((t) => t.team === scope.value) : undefined
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -75,7 +74,7 @@ export function ProjectionsView({ data }: { data: ProjectionsData }) {
         onWeekChange={(w) => update({ week: w })}
       />
 
-      {team && <TeamSchedule team={team} week={week} games={scopedGames} teams={data.teams} />}
+      {scope.kind === 'team' && <TeamSchedule games={scopedGames} teams={data.teams} />}
 
       <OutlookSection teams={scopedTeams} />
       <RatingsSection allTeams={data.teams} scopedTeams={scopedTeams} />
