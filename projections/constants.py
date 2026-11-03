@@ -29,9 +29,9 @@ class Params:
     rushes: int         # rushes per team per game
 
 
-# Calibrated on 2026 Weeks 6-8: 41 games, with QB adjustment
-LEGACY_PARAMS = Params(0.8, 800.0, 0.0150, 1.7, 11.0, 150, -1.5, 3.0, 0.5, 1.0, 25)
-
-
-# Dropbacks per team per game: rounded 2022-2025 mean (35.39). projections.backtest fails if this goes stale.
-DB_PER_GAME = 35
+# SLOPE, HFA and SIG were refit on all completed games 2022-2026 (1,208 games) with K and REG held at 800 and 0.8.
+# QB_K, QB_PRIOR and the rush constants come from the 2026 Weeks 6-8 calibration and were not refit.
+# Refit by hand with `python3 -m projections.backtest --refit`; bump MODEL_VERSION whenever these change.
+PARAMS = Params(reg=0.8, k=800.0, slope=0.00906, hfa=2.11, sig=13.06, qb_k=150, qb_prior=-1.5,
+                rush_window=3.0, rush_pts=0.5, rush_cap=1.0, rushes=25)
+MODEL_VERSION = "2026.1"

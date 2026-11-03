@@ -1,7 +1,7 @@
 # NFL Projection Model (2026 season)
 
 Weekly win-probability and season projection model for the 2026 NFL regular season, built on
-ANY/A Value ratings. The code lives in the `projections/` package (`constants`, `data`, `ratings`, `game_model`, `simulate`); the original single script was split into it with identical results. The `python3 -m projections` CLI arrives in a later task; until then use the functions directly.
+ANY/A Value ratings. The code lives in the `projections/` package (`constants`, `data`, `ratings`, `game_model`, `simulate`); the original single script was split into it with identical results. The `python3 -m projections` CLI arrives in a later task; until then use the functions directly (`build_ratings` and `predict` with `PARAMS`).
 
 ## Quick start
 
@@ -51,40 +51,75 @@ nflverse team codes: the Rams are `LA`, not `LAR`. Passer names look like `C.Wil
 4. **Game margin**
    - Ratings are regressed: × 0.8.
    - Each side scores as matchup = 800 × tanh((offense − opposing defense) ÷ 800). The curve dampens big mismatches.
-   - Margin = 0.0150 × (home matchup − away matchup) + 1.7 home field (0 at neutral sites).
+   - Margin = `slope` × (home matchup − away matchup) + `hfa` home field (0 at neutral sites), using the constants below.
 5. **Rushing tiebreaker**
    - Applies only when |margin| < 3 points.
    - Uses opponent-adjusted rushing EPA per play: a ridge regression of play EPA on offense and defense team dummies, with λ = 50.
    - Edge = 25 carries × ((home rush offense − away run defense) − (away rush offense − home run defense)).
    - Nudge = 0.5 × edge, capped at ±1 point.
-6. **Win probability:** Φ(margin ÷ 11).
+6. **Win probability:** Φ(margin ÷ `sig`).
 7. **Monte Carlo**
    - 20,000 seasons, seed 7. Completed games use actual results.
    - Tiebreakers: win %, then head-to-head among tied teams, then division record (division ties only), then conference record, then random.
    - Seeds and playoff spots: 4 division winners plus 3 wild cards per conference.
 
-## Constants and calibration
+## Formula and constants
 
-All constants sit at the top of the script.
+The model is a season-total formula. Ratings are opponent-adjusted ANY/A value (plus the starting-QB adjustment), summed over the games played so far, then regressed by `reg`:
 
-| Constant | Value | Meaning |
-|---|---|---|
-| `REG` | 0.8 | Shrink ratings 20% toward zero |
-| `K` | 800 | tanh curve width. A linear fit was equally good; 800 keeps some matchup logic |
-| `SLOPE` | 0.0150 | Points per rating unit |
-| `HFA` | 1.7 | Home-field points |
-| `SIG` | 11.0 | Standard deviation of actual margin around projected |
-| `QB_K`, `QB_PRIOR` | 150, −1.5 | QB shrinkage weight and prior (ANY/A vs league) |
-| `RUSH_*` | 3.0 / 0.5 / 1.0 / 25 | Tiebreaker window, points per EPA, cap, carries |
+```
+matchup(x) = k × tanh(x / k)
+margin     = slope × (matchup(home off − away def) − matchup(away off − home def)) + hfa   (hfa = 0 at neutral sites)
+             + rush nudge when |margin| < rush_window
+P(home win) = Φ(margin / sig)
+```
 
-Calibration history, all on 2026 Weeks 6–8 (41 games):
-- **Raw ratings:** RMSE 11.4 points, against 12.8 for predicting 0.
-- **Opponent adjustment:** RMSE 11.4 → 11.0.
-- **QB adjustment:** RMSE about 10.9; 27 of 41 winners picked correctly.
-- **Rushing EPA:** carries over poorly week to week (run defense split-half correlation ≈ −0.24), so it is used only as a capped tiebreaker. Out of sample, it correlated +0.37 with residuals in close games.
-- **Separate offense/defense regression:** shrinking defense harder made the fit worse, so both units use the same `REG`.
+All constants live in `projections/constants.py` as `PARAMS` (a `Params` instance), with the version in `MODEL_VERSION`. The current version is `2026.1`.
 
-These fits are in-sample and small. **Refit `SLOPE`, `HFA` and `SIG` every few weeks** by regressing actual margin on the matchup difference over recent games. Do not tune constants to match betting lines: the market is kept as a comparison, never an input.
+| `Params` field | Value | Meaning | Source |
+|---|---|---|---|
+| `reg` | 0.8 | Shrink ratings 20% toward zero | Held from the 2026 Weeks 6-8 calibration |
+| `k` | 800 | tanh curve scale | Held from the 2026 Weeks 6-8 calibration |
+| `slope` | 0.00906 | Points per rating unit | Refit on 2022-2026 |
+| `hfa` | 2.11 | Home-field points | Refit on 2022-2026 |
+| `sig` | 13.06 | SD of actual margin around projected | Refit on 2022-2026 |
+| `qb_k`, `qb_prior` | 150, −1.5 | QB shrinkage weight (dropbacks) and prior (ANY/A vs league) | 2026 Weeks 6-8 calibration, not refit |
+| `rush_window`, `rush_pts`, `rush_cap`, `rushes` | 3.0, 0.5, 1.0, 25 | Tiebreaker window, points per EPA, cap, carries | 2026 Weeks 6-8 calibration, not refit |
+
+`slope`, `hfa` and `sig` were refit once, on all 1,208 completed games from 2022 through 2026, with `k` and `reg` held fixed. Before this they were 0.0150, 1.7 and 11.0.
+
+## Backtest
+
+The full report is [docs/projections/backtest-2026-11.md](../docs/projections/backtest-2026-11.md). It scores a walk-forward backtest over 2022-2025 (2026 as a forward check), where every prediction uses only games from strictly earlier weeks. Log loss over 2022-2025 (lower is better):
+
+| Version | Log loss |
+|---|---:|
+| Constants in use before the refit (0.0150, 1.7, 11.0) | 0.683 |
+| Same formula, `slope`, `hfa`, `sig` refit leave-one-season-out (adopted) | 0.655 |
+| Per-dropback formula (rejected) | 0.662 |
+
+The per-dropback formula was rejected because it was worse in Weeks 1-6, level afterward, and showed no measured gain over the refit season-total formula.
+
+The report was generated by code that is no longer in the tree. It is at commit `27ebf92`, and the report is kept as the historical record and is not regenerated. `projections/backtest.py` now holds only the walk-forward rows, the fit, leave-one-season-out scoring and the refit command.
+
+The old calibration (RMSE about 10.9 with 27 of 41 winners on 2026 Weeks 6-8) used look-ahead ratings that included the games being scored. It is not a forecast figure. Honest walk-forward on those weeks gave RMSE 12.63, against 12.92 for predicting a margin of 0. Walk-forward leave-one-season-out on the refit formula over 2022-2026 gives RMSE 13.06 and 59.8% winners.
+
+Other findings that still hold: rushing EPA carries over poorly week to week (run defense split-half correlation about −0.24), so it is used only as a capped tiebreaker. Shrinking defense harder than offense made the fit worse, so both units use the same `reg`. Do not tune constants to match betting lines: the market is kept as a comparison, never an input.
+
+### Known limits
+
+- Ratings still grow with games played, and teams with more games get larger values. The backtest found no measured cost to this.
+- Early-season opponent adjustment is unstable: the 50-iteration loop does not settle on sparse schedules, so early-week ratings can be large.
+- `qb_k`, `qb_prior` and the rush constants were not refit.
+- `k` and `reg` were held at their 2026 Weeks 6-8 values, not searched.
+
+### Refitting
+
+A refit is manual, and weekly runs never refit.
+1. Run `python3 -m projections.backtest --refit` (add `--data-dir DIR` to reuse downloaded data; keep it outside the repo). It prints `slope`, `hfa` and `sig` for all completed games.
+2. Paste the values into `PARAMS` in `projections/constants.py`.
+3. Bump `MODEL_VERSION`.
+4. Rerun `pytest tests/projections`. `tests/projections/test_constants.py` fails if a refit lands outside the expected ranges, which is a signal to investigate rather than widen them.
 
 ## Weekly workflow
 

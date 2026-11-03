@@ -1,11 +1,10 @@
 """ANY/A Value ratings, opponent adjustment, starting-QB adjustment and rushing EPA."""
 from dataclasses import dataclass, field
-from typing import Optional
 
 import numpy as np
 import pandas as pd
 
-from .constants import DB_PER_GAME, TEAMS
+from .constants import TEAMS
 
 
 @dataclass
@@ -103,37 +102,6 @@ def _opponent_adjust(done, raw):
     return aO, aD
 
 
-def _opponent_solve(done, raw):
-    """Direct solve of the fixed point _opponent_adjust iterates toward, for per-dropback rates:
-    O = off + M*D - mo and D = def + M*O - md, with O and D each mean zero and M the opponent-average matrix.
-
-    On a sparse schedule that system can be singular and inconsistent, and the loop then grows with its iteration
-    count. This returns the minimum-norm least-squares solution. Where the schedule is connected and not bipartite
-    the solution is unique and equals what the loop converges to. Teams with no games stay 0."""
-    aO, aD = {t: 0.0 for t in TEAMS}, {t: 0.0 for t in TEAMS}
-    teams_in_games = set(done.home_team) | set(done.away_team)
-    played = [t for t in TEAMS if t in teams_in_games]
-    p = len(played)
-    if not p:
-        return aO, aD
-    ix = {t: i for i, t in enumerate(played)}
-    M = np.zeros((p, p))
-    for r in done.itertuples():
-        M[ix[r.home_team], ix[r.away_team]] += 1
-        M[ix[r.away_team], ix[r.home_team]] += 1
-    M /= M.sum(axis=1, keepdims=True)
-    # Eliminate mo and md by centering. (1, 0) and (0, 1) are then singular vectors of A with zero component in b,
-    # so the solution is exactly mean zero for each unit.
-    center = np.eye(p) - 1.0/p
-    A = np.block([[np.eye(p), -center @ M], [-center @ M, np.eye(p)]])
-    b = np.concatenate([center @ np.array([raw.off[t] for t in played]),
-                        center @ np.array([raw.def_[t] for t in played])])
-    x = np.linalg.lstsq(A, b, rcond=1e-10)[0]
-    for t, i in ix.items():
-        aO[t], aD[t] = float(x[i]), float(x[p + i])
-    return aO, aD
-
-
 def _qb_rate_adjustments(db, done, overrides, params, raw):
     """Per-dropback QB adjustment per team: projected starter's rate minus the dropback-weighted rate of the
     QBs who actually played. Rates are shrunk toward a below-average prior. Returns (starter, warnings, adj)."""
@@ -157,10 +125,11 @@ def _qb_rate_adjustments(db, done, overrides, params, raw):
     return starter, warnings, adj
 
 
-def build_ratings_legacy(done, pbp, overrides, params) -> RatingSet:
+def build_ratings(done, pbp, overrides, params) -> RatingSet:
+    """Season-total ratings: opponent-adjusted ANY/A value plus the starting-QB adjustment, regressed by params.reg
+    for prediction. Raw off/def_ do not depend on params."""
     db = dropbacks(pbp)
     raw = raw_values(db)
-    lg = raw.lg
     aO, aD = _opponent_adjust(done, raw)
 
     starter, warnings, rate_adj = _qb_rate_adjustments(db, done, overrides, params, raw)
@@ -173,41 +142,4 @@ def build_ratings_legacy(done, pbp, overrides, params) -> RatingSet:
     return RatingSet(off_pred={t: aO[t]*reg for t in TEAMS}, def_pred={t: aD[t]*reg for t in TEAMS},
                      off_season=dict(aO), def_season=dict(aD),
                      qb_adj_season=qb_adj, qb_adj_pred={t: qb_adj[t]*reg for t in TEAMS},
-                     starter=starter, warnings=warnings, ro=ro, rd=rd)
-
-
-def unit_weight(n, reg, shrink_s: Optional[float]) -> float:
-    """Weight on a unit's rate: flat `reg` when shrink_s is None, otherwise n / (n + shrink_s)."""
-    return reg if shrink_s is None else n / (n + shrink_s) if n + shrink_s else 0.0
-
-
-def _rate_values(db, raw) -> Raw:
-    """Per-dropback off and def values relative to the league mean."""
-    o = db.groupby('posteam').pts.mean()
-    d_ = db.groupby('defteam').pts.mean()
-    return Raw(off={t: (o[t] - raw.lg) if raw.off_n[t] else 0.0 for t in TEAMS},
-               def_={t: (raw.lg - d_[t]) if raw.def_n[t] else 0.0 for t in TEAMS},
-               lg=raw.lg, off_n=raw.off_n, def_n=raw.def_n)
-
-
-def build_ratings_rate(done, pbp, overrides, params, shrink_s: Optional[float]) -> RatingSet:
-    """Per-dropback ratings. Prediction ratings are rate x DB_PER_GAME x weight, so they do not grow with
-    games played; season values are rate x team dropbacks, comparable with raw values."""
-    db = dropbacks(pbp)
-    raw = raw_values(db)
-    aO, aD = _opponent_solve(done, _rate_values(db, raw))
-
-    starter, warnings, qb_rate = _qb_rate_adjustments(db, done, overrides, params, raw)
-    for t in TEAMS:
-        aO[t] += qb_rate[t]
-
-    w_off = {t: unit_weight(raw.off_n[t], params.reg, shrink_s) for t in TEAMS}
-    w_def = {t: unit_weight(raw.def_n[t], params.reg, shrink_s) for t in TEAMS}
-    ro, rd = rush_epa(pbp)
-    return RatingSet(off_pred={t: aO[t]*DB_PER_GAME*w_off[t] for t in TEAMS},
-                     def_pred={t: aD[t]*DB_PER_GAME*w_def[t] for t in TEAMS},
-                     off_season={t: aO[t]*raw.off_n[t] for t in TEAMS},
-                     def_season={t: aD[t]*raw.def_n[t] for t in TEAMS},
-                     qb_adj_season={t: qb_rate[t]*raw.off_n[t] for t in TEAMS},
-                     qb_adj_pred={t: qb_rate[t]*DB_PER_GAME*w_off[t] for t in TEAMS},
                      starter=starter, warnings=warnings, ro=ro, rd=rd)
