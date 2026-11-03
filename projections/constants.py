@@ -33,5 +33,5 @@ class Params:
 LEGACY_PARAMS = Params(0.8, 800.0, 0.0150, 1.7, 11.0, 150, -1.5, 3.0, 0.5, 1.0, 25)
 
 
-# Dropbacks per team per game; temporary value, replaced in Task 5
-DB_PER_GAME = 36
+# Dropbacks per team per game: rounded 2022-2025 mean (35.39). projections.backtest fails if this goes stale.
+DB_PER_GAME = 35

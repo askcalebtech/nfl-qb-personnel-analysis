@@ -1,7 +1,9 @@
+import math
+
 from pytest import approx
 
 from projections.constants import LEGACY_PARAMS, TEAMS
-from projections.game_model import predict
+from projections.game_model import compute_margin, predict
 from projections.ratings import RatingSet
 
 
@@ -52,3 +54,11 @@ def test_margin_is_sum_of_components():
     rs = make_rs(off={'H': 30.0}, def_={'A': 10.0}, ro={'H': 0.01})
     p = predict('A', 'H', False, rs, LEGACY_PARAMS)
     assert p.margin == approx(p.matchup_points + p.hfa + p.nudge)
+
+
+def test_each_offense_is_matched_against_the_opposing_defense():
+    p = compute_margin(off_home=10.0, def_home=3.0, off_away=-4.0, def_away=40.0, rush_edge=0.0, neutral=True,
+                       params=LEGACY_PARAMS)
+    k = LEGACY_PARAMS.k
+    assert p.home_matchup == approx(k*math.tanh((10.0 - 40.0)/k))
+    assert p.away_matchup == approx(k*math.tanh((-4.0 - 3.0)/k))

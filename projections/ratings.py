@@ -145,6 +145,11 @@ def build_ratings_legacy(done, pbp, overrides, params) -> RatingSet:
                      starter=starter, warnings=warnings, ro=ro, rd=rd)
 
 
+def unit_weight(n, reg, shrink_s: Optional[float]) -> float:
+    """Weight on a unit's rate: flat `reg` when shrink_s is None, otherwise n / (n + shrink_s)."""
+    return reg if shrink_s is None else n / (n + shrink_s) if n + shrink_s else 0.0
+
+
 def build_ratings_rate(done, pbp, overrides, params, shrink_s: Optional[float]) -> RatingSet:
     """Per-dropback ratings. Prediction ratings are rate x DB_PER_GAME x weight, so they do not grow with
     games played; season values are rate x team dropbacks, comparable with raw values."""
@@ -162,11 +167,8 @@ def build_ratings_rate(done, pbp, overrides, params, shrink_s: Optional[float]) 
     for t in TEAMS:
         aO[t] += qb_rate[t]
 
-    def weight(n):
-        return params.reg if shrink_s is None else n / (n + shrink_s) if n + shrink_s else 0.0
-
-    w_off = {t: weight(raw.off_n[t]) for t in TEAMS}
-    w_def = {t: weight(raw.def_n[t]) for t in TEAMS}
+    w_off = {t: unit_weight(raw.off_n[t], params.reg, shrink_s) for t in TEAMS}
+    w_def = {t: unit_weight(raw.def_n[t], params.reg, shrink_s) for t in TEAMS}
     ro, rd = rush_epa(pbp)
     return RatingSet(off_pred={t: aO[t]*DB_PER_GAME*w_off[t] for t in TEAMS},
                      def_pred={t: aD[t]*DB_PER_GAME*w_def[t] for t in TEAMS},
