@@ -6,7 +6,8 @@ import pandas as pd
 import pytest
 
 from projections.constants import PARAMS, TEAMS
-from projections.output import (build_games, build_payload, validate, write_if_changed, write_snapshot)
+from projections.output import (build_games, build_payload, publish, validate, write_if_changed,
+                                 write_snapshot)
 from projections.ratings import build_ratings, dropbacks, raw_values
 from projections.simulate import simulate
 from tests.projections.test_ratings import frame, play
@@ -189,3 +190,42 @@ def test_vig_removed():
     g = [x for x in payload['games'] if x['game_id'] == 't1'][0]
     ph, pa = 150/250, 100/230
     assert g['mkt_home'] == pytest.approx(ph/(ph+pa), abs=1e-4)
+
+
+def test_publish_writes_missing_snapshot_when_output_current(tmp_path):
+    payload, *_ = make()
+    out, snaps = str(tmp_path / 'p.json'), str(tmp_path / 'snaps')
+    write_if_changed(payload, out)  # output already current, snapshot never written
+    before = open(out).read()
+    assert publish(dict(payload, generated_at='later'), out, snaps) is False
+    assert open(out).read() == before
+    assert [p.name for p in (tmp_path / 'snaps').iterdir()] == ['2026-through-wk02.json']
+
+
+def test_publish_leaves_existing_snapshot_alone_when_unchanged(tmp_path):
+    payload, *_ = make()
+    out, snaps = str(tmp_path / 'p.json'), str(tmp_path / 'snaps')
+    assert publish(payload, out, snaps) is True
+    snap = tmp_path / 'snaps' / '2026-through-wk02.json'
+    snap.write_text('sentinel')
+    assert publish(payload, out, snaps) is False
+    assert snap.read_text() == 'sentinel'
+
+
+def test_failed_write_leaves_no_tmp_and_snapshot_is_atomic(tmp_path, monkeypatch):
+    import os
+    payload, *_ = make()
+    snaps = str(tmp_path / 'snaps')
+    path = write_snapshot(payload, snaps)
+    good = open(path).read()
+
+    def boom(src, dst):
+        raise OSError('disk')
+    monkeypatch.setattr(os, 'replace', boom)
+    with pytest.raises(OSError):
+        write_snapshot(dict(payload, league_anya=9.0), snaps)
+    assert open(path).read() == good
+    assert [p.name for p in (tmp_path / 'snaps').iterdir()] == ['2026-through-wk02.json']
+    with pytest.raises(OSError):
+        write_if_changed(dict(payload, through_week=3), str(tmp_path / 'p.json'))
+    assert not (tmp_path / 'p.json.tmp').exists()

@@ -136,18 +136,38 @@ def write_if_changed(payload, path) -> bool:
                     return False
         except ValueError:
             pass
+    _atomic_write(path, text)
+    return True
+
+
+def _atomic_write(path, text) -> None:
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     tmp = path + '.tmp'
-    with open(tmp, 'w') as f:
-        f.write(text)
-    os.replace(tmp, path)
-    return True
+    try:
+        with open(tmp, 'w') as f:
+            f.write(text)
+        os.replace(tmp, path)
+    except BaseException:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+        raise
+
+
+def snapshot_path(payload, dir) -> str:
+    return os.path.join(dir, f"{payload['season']}-through-wk{payload['through_week']:02d}.json")
 
 
 def write_snapshot(payload, dir) -> str:
     text = _dumps(payload)
-    os.makedirs(dir, exist_ok=True)
-    path = os.path.join(dir, f"{payload['season']}-through-wk{payload['through_week']:02d}.json")
-    with open(path, 'w') as f:
-        f.write(text)
+    path = snapshot_path(payload, dir)
+    _atomic_write(path, text)
     return path
+
+
+def publish(payload, out, snapshots) -> bool:
+    """Write the output if changed, and the snapshot if the output changed or this week's snapshot is missing.
+    Returns whether the output changed."""
+    changed = write_if_changed(payload, out)
+    if changed or not os.path.exists(snapshot_path(payload, snapshots)):
+        write_snapshot(payload, snapshots)
+    return changed

@@ -7,7 +7,7 @@ import tempfile
 
 from .constants import PARAMS
 from .data import download, load
-from .output import (build_games, build_payload, validate, write_if_changed, write_snapshot)
+from .output import build_games, build_payload, publish, validate
 from .ratings import build_ratings, dropbacks, raw_values
 from .simulate import simulate
 
@@ -41,16 +41,17 @@ def main(argv=None) -> int:
 
     previous = None
     if os.path.exists(args.out):
-        with open(args.out) as f:
-            previous = json.load(f)
+        try:
+            with open(args.out) as f:
+                previous = json.load(f)
+        except ValueError as e:
+            print(f"WARNING: existing {args.out} is unreadable ({e}); treating as no previous file")
     try:
         validate(payload, done, pbp, previous)
-        changed = write_if_changed(payload, args.out)
+        changed = publish(payload, args.out, args.snapshots)
     except ValueError as e:
         print(f"FAILED: {e}", file=sys.stderr)
         return 1
-    if changed:
-        write_snapshot(payload, args.snapshots)
     print(f"OK: through week {payload['through_week']}, {len(payload['games'])} games remaining, changed={changed}")
     return 0
 
