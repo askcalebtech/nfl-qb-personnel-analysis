@@ -4,7 +4,7 @@ Walk-forward backtest over 2022, 2023, 2024, 2025, with 2026 as a forward check.
 
 ## Versions
 
-- **Version A**: today's model with its current constants. Those constants were calibrated on 2026 Weeks 6-8, so those weeks are in-sample for A. Nothing is fit here.
+- **Version A**: today's model with its current constants. Those constants were calibrated on 2026 Weeks 6-8, so only A's constants are in-sample on those weeks. Its ratings are walk-forward. Nothing is fit here.
 - **Version B**: today's formula, with SLOPE, HFA and SIG refit at K=800, REG=0.8, scored leave-one-season-out.
 - **Version C**: the per-dropback formula, with K, REG or shrinkage chosen by lowest training log loss and SLOPE, HFA and SIG refit, scored leave-one-season-out.
 
@@ -83,7 +83,7 @@ Version A uses its fixed constants on the same games.
 
 ## Forward check: 2026
 
-Constants fit on 2022, 2023, 2024, 2025 only. Version A is in-sample on 2026 Weeks 6-8.
+Constants fit on 2022, 2023, 2024, 2025 only. Version A's constants were fit on 2026 Weeks 6-8, but its ratings are walk-forward.
 
 2026 has no late-season games, so this check cannot test late-season behavior.
 
@@ -102,11 +102,13 @@ Constants fit on 2022, 2023, 2024, 2025 only. Version A is in-sample on 2026 Wee
 | C | Mid (Weeks 7-12) | 28 | 14.34 | 0.6637 | 64.3 |
 | C | Late (Weeks 13-18) | 0 | no games | no games | no games |
 
-### Version A on 2026 Weeks 6-8 (in-sample)
+### Version A on 2026 Weeks 6-8 (constants fit here, ratings walk-forward)
 
 | Version | Split | Games | RMSE | Log loss | Winners % |
 |---|---|---:|---:|---:|---:|
 | A | Weeks 6-8 | 42 | 12.63 | 0.6867 | 59.5 |
+
+The previously documented figure for A, RMSE about 10.9 with 27 of 41 winners, used ratings that included the games being scored (look-ahead). Reproduced on 42 games, ratings through Week 8 give RMSE 10.78 and 27 of 42 winners (measured on this data on 2026-11-03, not recomputed by this script). The walk-forward row above is the honest comparison, and predicting a margin of 0 gives RMSE 12.92.
 
 ## Calibration: 2022, 2023, 2024, 2025
 
@@ -167,7 +169,7 @@ Version A: Params(reg=0.8, k=800.0, slope=0.015, hfa=1.7, sig=11.0, qb_k=150, qb
 | C | all but 2025 | 400 | shrinkage s=400 | 0.11363 | 2.226 | 13.085 |
 | C | 2022, 2023, 2024, 2025 | 100 | shrinkage s=400 | 0.12681 | 2.245 | 13.123 |
 
-Flat vs. shrinkage for Version C: flat REG won 0 of 5 fits, shrinkage won 5.
+Flat vs. shrinkage for Version C: flat REG won 0 of 5 fits, shrinkage won 5. Version B is fixed at flat K=800 and REG=0.8 while C searches a grid, so this line compares weightings within C only and does not show that shrinkage beats flat weighting for today's formula. The chosen K also varied widely by fold, from 50 to 400.
 
 ## Limits
 

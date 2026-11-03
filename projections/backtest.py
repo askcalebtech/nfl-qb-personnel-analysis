@@ -275,7 +275,8 @@ def build_report(seasons, forward, legacy_train, rate_train, legacy_fwd, rate_fw
              'are home-field advantage alone. Betting lines are not used anywhere.', '',
              '## Versions', '',
              f'- **Version A**: today\'s model with its current constants. Those constants were calibrated on '
-             f'{forward} Weeks 6-8, so those weeks are in-sample for A. Nothing is fit here.',
+             f'{forward} Weeks 6-8, so only A\'s constants are in-sample on those weeks. Its ratings are walk-forward. '
+             'Nothing is fit here.',
              f'- **Version B**: today\'s formula, with SLOPE, HFA and SIG refit at K={LEGACY_FIT_K:.0f}, '
              f'REG={LEGACY_FIT_REG}, scored leave-one-season-out.',
              '- **Version C**: the per-dropback formula, with K, REG or shrinkage chosen by lowest training log '
@@ -295,13 +296,21 @@ def build_report(seasons, forward, legacy_train, rate_train, legacy_fwd, rate_fw
     lines += ['', '### By held-out season', ''] + _season_table(train)
     lines += ['', '### Early season by week', ''] + _week_table(train, range(1, 7))
     lines += ['', f'## Forward check: {forward}', '',
-              f'Constants fit on {train_label} only. Version A is in-sample on {forward} Weeks 6-8.', '']
+              f'Constants fit on {train_label} only. Version A\'s constants were fit on {forward} Weeks 6-8, but its ratings '
+              'are walk-forward.', '']
     if not (legacy_fwd.week >= 13).any():
         lines += [f'{forward} has no late-season games, so this check cannot test late-season behavior.', '']
     lines += _results_table(fwd)
-    lines += ['', f'### Version A on {forward} Weeks 6-8 (in-sample)', '',
+    w68 = a_fwd[a_fwd.week.between(6, 8)]
+    zero_rmse = f'{np.sqrt(np.mean(w68.result.values.astype(float)**2)):.2f}' if len(w68) else 'not available'
+    lines += ['', f'### Version A on {forward} Weeks 6-8 (constants fit here, ratings walk-forward)', '',
               '| Version | Split | Games | RMSE | Log loss | Winners % |', '|---|---|---:|---:|---:|---:|',
-              _score_row('Weeks 6-8', 'A', a_fwd[a_fwd.week.between(6, 8)])]
+              _score_row('Weeks 6-8', 'A', w68), '',
+              f'The previously documented figure for A, RMSE about 10.9 with 27 of 41 winners, used ratings that '
+              f'included the games being scored (look-ahead). Reproduced on 42 games, ratings through Week 8 give '
+              f'RMSE 10.78 and 27 of 42 winners (measured on this data on 2026-11-03, not recomputed by this '
+              f'script). The walk-forward row above is the honest comparison, and predicting a margin of 0 gives '
+              f'RMSE {zero_rmse}.']
     lines += ['', f'## Calibration: {train_label}', '',
               'Ties are excluded. Bins are by predicted home-win probability.', ''] + _calibration_table(train)
     lines += ['', f'## Calibration: {forward}', ''] + _calibration_table(fwd)
@@ -310,7 +319,9 @@ def build_report(seasons, forward, legacy_train, rate_train, legacy_fwd, rate_fw
     lines += ['', '## Chosen constants', '', f'Version A: {LEGACY_PARAMS}', ''] + _constants_table(fits)
     wins = [f[1] is None for f in list(c_fits.values()) + [c_fit]]
     lines += ['', f'Flat vs. shrinkage for Version C: flat REG won {sum(wins)} of {len(wins)} fits, shrinkage won '
-              f'{len(wins) - sum(wins)}.', '',
+              f'{len(wins) - sum(wins)}. Version B is fixed at flat K=800 and REG=0.8 while C searches a grid, so this line '
+              'compares weightings within C only and does not show that shrinkage beats flat weighting for '
+              'today\'s formula. The chosen K also varied widely by fold, from 50 to 400.', '',
               '## Limits', '',
               f'- QB_K, QB_PRIOR and the rush constants date from the {forward} Weeks 6-8 calibration, so they are '
               f'not independent of the {forward} forward check. Version B\'s fixed K={LEGACY_FIT_K:.0f} and '
