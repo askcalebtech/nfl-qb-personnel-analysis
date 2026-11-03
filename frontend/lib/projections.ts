@@ -46,7 +46,9 @@ const STALE_DAYS = 8
 
 export function isStale(generatedAt: string, now: Date, gamesRemaining: number): boolean {
   if (gamesRemaining <= 0) return false
-  const ageDays = (now.getTime() - new Date(generatedAt).getTime()) / 86_400_000
+  const generated = new Date(generatedAt).getTime()
+  if (Number.isNaN(generated)) return true // never present unknown-age numbers as fresh
+  const ageDays = (now.getTime() - generated) / 86_400_000
   return ageDays > STALE_DAYS
 }
 

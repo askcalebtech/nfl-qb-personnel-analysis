@@ -3,8 +3,8 @@ import "./globals.css";
 import Navbar from "@/components/nav/Navbar";
 
 export const metadata: Metadata = {
-  title: "NFL QB Personnel Analysis",
-  description: "Analyze QB performance across offensive/defensive personnel matchups (2022–2025).",
+  title: "NFL Analytics",
+  description: "NFL analytics: QB performance by personnel matchup (2022–2025) and weekly ANY/A game projections.",
 };
 
 export default function RootLayout({

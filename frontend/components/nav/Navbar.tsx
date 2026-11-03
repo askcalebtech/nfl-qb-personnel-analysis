@@ -8,6 +8,7 @@ const links = [
   { href: '/dashboard', label: 'QB Dashboard' },
   { href: '/leaderboard', label: 'Leaderboard' },
   { href: '/trends', label: 'League Trends' },
+  { href: '/projections', label: 'Projections' },
 ]
 
 export default function Navbar() {
@@ -19,7 +20,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14">
           <span className="font-semibold text-sm tracking-wide text-gray-200">
-            NFL QB Personnel Analysis
+            NFL Analytics
           </span>
 
           {/* Desktop nav */}

@@ -81,6 +81,10 @@ describe('isStale', () => {
     expect(isStale('2026-11-03T00:00:00Z', now, 10)).toBe(true)
     expect(isStale('2026-11-05T00:00:00Z', now, 10)).toBe(false)
   })
+  test('isStale true for an unparseable generatedAt', () => {
+    expect(isStale('not a date', now, 10)).toBe(true)
+    expect(isStale('', now, 10)).toBe(true)
+  })
   test('isStale false when no games remain', () => {
     expect(isStale('2026-11-03T00:00:00Z', now, 0)).toBe(false)
   })
