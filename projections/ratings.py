@@ -1,10 +1,11 @@
 """ANY/A Value ratings, opponent adjustment, starting-QB adjustment and rushing EPA."""
 from dataclasses import dataclass, field
+from typing import Optional
 
 import numpy as np
 import pandas as pd
 
-from .constants import TEAMS
+from .constants import DB_PER_GAME, TEAMS
 
 
 @dataclass
@@ -102,14 +103,10 @@ def _opponent_adjust(done, raw):
     return aO, aD
 
 
-def build_ratings_legacy(done, pbp, overrides, params) -> RatingSet:
-    db = dropbacks(pbp)
-    raw = raw_values(db)
+def _qb_rate_adjustments(db, done, overrides, params, raw):
+    """Per-dropback QB adjustment per team: projected starter's rate minus the dropback-weighted rate of the
+    QBs who actually played. Rates are shrunk toward a below-average prior. Returns (starter, warnings, adj)."""
     lg = raw.lg
-    aO, aD = _opponent_adjust(done, raw)
-
-    # Each QB's ANY/A per dropback, shrunk toward a below-average prior; the team's offense moves by
-    # (projected starter's rate - dropback-weighted rate of the QBs who actually played) x team dropbacks.
     q = db.groupby(['posteam', 'passer_player_name']).pts.agg(['size', 'mean']).reset_index()
     q['rate'] = (q['size']*q['mean'] + params.qb_k*(lg + params.qb_prior)) / (q['size'] + params.qb_k)
     qrate = {(r.posteam, r.passer_player_name): r.rate for r in q.itertuples()}
@@ -118,15 +115,26 @@ def build_ratings_legacy(done, pbp, overrides, params) -> RatingSet:
         qt = q[q.posteam == t]
         qmix[t] = (qt['size']*qt.rate).sum() / qt['size'].sum() if len(qt) else 0.0
     starter = pick_starters(db, done, overrides)
-    warnings, qb_adj = [], {}
+    warnings, adj = [], {}
     for t in TEAMS:
         if t in overrides and (t, starter[t]) not in qrate:
             warnings.append(f"{t}: starter {starter[t]} has no dropbacks for this team this season; using prior")
         if starter[t] is None or raw.off_n[t] == 0:
-            qb_adj[t] = 0.0
+            adj[t] = 0.0
             continue
-        rate = qrate.get((t, starter[t]), lg + params.qb_prior)
-        qb_adj[t] = (rate - qmix[t]) * raw.off_n[t]
+        adj[t] = qrate.get((t, starter[t]), lg + params.qb_prior) - qmix[t]
+    return starter, warnings, adj
+
+
+def build_ratings_legacy(done, pbp, overrides, params) -> RatingSet:
+    db = dropbacks(pbp)
+    raw = raw_values(db)
+    lg = raw.lg
+    aO, aD = _opponent_adjust(done, raw)
+
+    starter, warnings, rate_adj = _qb_rate_adjustments(db, done, overrides, params, raw)
+    qb_adj = {t: rate_adj[t] * raw.off_n[t] for t in TEAMS}
+    for t in TEAMS:
         aO[t] += qb_adj[t]
 
     ro, rd = rush_epa(pbp)
@@ -134,4 +142,36 @@ def build_ratings_legacy(done, pbp, overrides, params) -> RatingSet:
     return RatingSet(off_pred={t: aO[t]*reg for t in TEAMS}, def_pred={t: aD[t]*reg for t in TEAMS},
                      off_season=dict(aO), def_season=dict(aD),
                      qb_adj_season=qb_adj, qb_adj_pred={t: qb_adj[t]*reg for t in TEAMS},
+                     starter=starter, warnings=warnings, ro=ro, rd=rd)
+
+
+def build_ratings_rate(done, pbp, overrides, params, shrink_s: Optional[float]) -> RatingSet:
+    """Per-dropback ratings. Prediction ratings are rate x DB_PER_GAME x weight, so they do not grow with
+    games played; season values are rate x team dropbacks, comparable with raw values."""
+    db = dropbacks(pbp)
+    raw = raw_values(db)
+    lg = raw.lg
+    o = db.groupby('posteam').pts.mean()
+    d_ = db.groupby('defteam').pts.mean()
+    rate_raw = Raw(off={t: (o[t] - lg) if raw.off_n[t] else 0.0 for t in TEAMS},
+                   def_={t: (lg - d_[t]) if raw.def_n[t] else 0.0 for t in TEAMS},
+                   lg=lg, off_n=raw.off_n, def_n=raw.def_n)
+    aO, aD = _opponent_adjust(done, rate_raw)
+
+    starter, warnings, qb_rate = _qb_rate_adjustments(db, done, overrides, params, raw)
+    for t in TEAMS:
+        aO[t] += qb_rate[t]
+
+    def weight(n):
+        return params.reg if shrink_s is None else n / (n + shrink_s) if n + shrink_s else 0.0
+
+    w_off = {t: weight(raw.off_n[t]) for t in TEAMS}
+    w_def = {t: weight(raw.def_n[t]) for t in TEAMS}
+    ro, rd = rush_epa(pbp)
+    return RatingSet(off_pred={t: aO[t]*DB_PER_GAME*w_off[t] for t in TEAMS},
+                     def_pred={t: aD[t]*DB_PER_GAME*w_def[t] for t in TEAMS},
+                     off_season={t: aO[t]*raw.off_n[t] for t in TEAMS},
+                     def_season={t: aD[t]*raw.def_n[t] for t in TEAMS},
+                     qb_adj_season={t: qb_rate[t]*raw.off_n[t] for t in TEAMS},
+                     qb_adj_pred={t: qb_rate[t]*DB_PER_GAME*w_off[t] for t in TEAMS},
                      starter=starter, warnings=warnings, ro=ro, rd=rd)

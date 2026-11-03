@@ -31,3 +31,7 @@ class Params:
 
 # Calibrated on 2026 Weeks 6-8: 41 games, with QB adjustment
 LEGACY_PARAMS = Params(0.8, 800.0, 0.0150, 1.7, 11.0, 150, -1.5, 3.0, 0.5, 1.0, 25)
+
+
+# Dropbacks per team per game; temporary value, replaced in Task 5
+DB_PER_GAME = 36
