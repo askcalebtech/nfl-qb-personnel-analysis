@@ -1,14 +1,14 @@
 # NFL Projection Model (2026 season)
 
 Weekly win-probability and season projection model for the 2026 NFL regular season, built on
-ANY/A Value ratings. Everything lives in one script, `nfl_pipeline.py`.
+ANY/A Value ratings. The code lives in the `projections/` package (`constants`, `data`, `ratings`, `game_model`, `simulate`); the original single script was split into it with identical results. The `python3 -m projections` CLI arrives in a later task; until then use the functions directly.
 
 ## Quick start
 
 ```bash
 pip install pandas numpy pyarrow
-python3 nfl_pipeline.py nfl_out                                   # default starting QBs
-python3 nfl_pipeline.py nfl_out --starters '{"BAL":"J.Fagnano"}'  # with QB overrides
+python3 -m projections nfl_out                                   # default starting QBs
+python3 -m projections nfl_out --starters '{"BAL":"J.Fagnano"}'  # with QB overrides
 ```
 
 Outputs, in the output directory you pass:
@@ -94,7 +94,7 @@ A cloud scheduled task named "Weekly NFL model update" runs Tuesdays at 8:23 AM 
 3. rewrites the Claude Doc "2026 NFL Remaining Games — Model Win Probabilities" (https://claude.ai/artifact/7521qze4Y6fgLeikoec1XW): the method section stays; everything from "## Season outlook and remaining games" down is replaced with `report.md`,
 4. pushes a short summary covering QB overrides, odds changes, the NFC North race, and the 3 biggest model-vs-market gaps.
 
-The scheduled task embeds its own copy of the script. **If you change `nfl_pipeline.py` here, update the task's prompt too**, or it will keep running the old version.
+The scheduled task embeds its own copy of the script. **If you change the `projections/` package here, update the task's prompt too**, or it will keep running the old version.
 
 QB override notes as of Nov 3, 2026:
 - `BAL`: J.Fagnano. Jackson is on injured reserve with a thumb injury, and Huntley is out with a toe injury. Restore `L.Jackson` when he returns.
