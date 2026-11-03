@@ -281,7 +281,8 @@ def build_report(seasons, forward, legacy_train, rate_train, legacy_fwd, rate_fw
              '- **Version C**: the per-dropback formula, with K, REG or shrinkage chosen by lowest training log '
              'loss and SLOPE, HFA and SIG refit, scored leave-one-season-out.', '',
              'Forward-check constants for B and C are fit on all training seasons and never see '
-             f'{forward}. QB_K, QB_PRIOR and the rush constants are held at their current values in every version.',
+             f'{forward}. QB_K, QB_PRIOR and the rush constants are held at their current values in every version. '
+             f'Version B\'s K and REG are fixed at values from the {forward} Weeks 6-8 calibration.',
              '', '## Data', '', '| Season | Completed games | Ties | Last week |', '|---|---:|---:|---:|']
     for rows in (legacy_train, legacy_fwd):
         for season in sorted(rows.season.unique()):
@@ -312,7 +313,13 @@ def build_report(seasons, forward, legacy_train, rate_train, legacy_fwd, rate_fw
               f'{len(wins) - sum(wins)}.', '',
               '## Limits', '',
               f'- QB_K, QB_PRIOR and the rush constants date from the {forward} Weeks 6-8 calibration, so they are '
-              f'not independent of the {forward} forward check.',
+              f'not independent of the {forward} forward check. Version B\'s fixed K={LEGACY_FIT_K:.0f} and '
+              f'REG={LEGACY_FIT_REG} come from the same calibration, which could favor B slightly in the forward '
+              'check.',
+              '- Scoring rules: ties count in RMSE only. A zero margin gets half credit for winners. The Games '
+              'column includes ties, while Winners % and Log loss exclude them.',
+              '- The direct solve for Version C was adopted after the 2022-2025 by-week results had been seen, and '
+              'the change did not improve C.',
               f'- DB_PER_GAME is computed over all of {train_label}, including each held-out season. It is one '
               'rounded scale factor that SLOPE rescales against, so the effect is small.',
               '- Version C uses a direct solve of the opponent adjustment because the original 50-iteration loop does '
@@ -320,7 +327,9 @@ def build_report(seasons, forward, legacy_train, rate_train, legacy_fwd, rate_fw
               'of today\'s formula. The two methods agree once the schedule is connected and the loop has settled, '
               'to within 1e-6 from about Week 8 on 2022-2025 data.',
               '- The direct solve changes early values but does not make them reliable. After one game each it '
-              'splits a gap evenly between offense and defense, where the loop gave the offense all of it. Week 3 '
+              'splits a gap evenly between offense and defense. The loop keeps the full gap in both units, so on one '
+              'pairing with a raw +10/+10 the loop gives +10/+10 and the solve gives +5/+5, and the loop counts the '
+              'gap twice in offense minus defense. Week 3 '
               'ratings can still be large, because two weeks of games leave long cycles that barely separate '
               'offense from defense. See the by-week table.',
               '- With flat weights, K and REG only act through K/REG once SLOPE is refit, so grid pairs with the same '
