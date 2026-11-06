@@ -7,7 +7,7 @@ import tempfile
 
 from .constants import PARAMS
 from .data import download, load
-from .output import build_games, build_payload, has_later_results, publish, validate
+from .output import build_completed, build_games, build_payload, has_later_results, publish, validate
 from .ratings import build_ratings, dropbacks, raw_values
 from .simulate import simulate
 
@@ -31,14 +31,6 @@ def main(argv=None) -> int:
         download(args.season, data_dir)
     done, todo, pbp = load(args.season, data_dir)
 
-    rs = build_ratings(done, pbp, overrides, PARAMS)
-    raw = raw_values(dropbacks(pbp))
-    games = build_games(todo, rs, PARAMS)
-    sim = simulate(done, games)
-    payload = build_payload(args.season, done, todo, rs, raw, games, sim)
-    for w in payload['warnings']:
-        print(f"WARNING: {w}")
-
     previous = None
     if os.path.exists(args.out):
         try:
@@ -46,6 +38,16 @@ def main(argv=None) -> int:
                 previous = json.load(f)
         except ValueError as e:
             print(f"WARNING: existing {args.out} is unreadable ({e}); treating as no previous file")
+
+    rs = build_ratings(done, pbp, overrides, PARAMS)
+    raw = raw_values(dropbacks(pbp))
+    games = build_games(todo, rs, PARAMS)
+    sim = simulate(done, games)
+    completed = build_completed(args.season, done, pbp, previous, args.snapshots, PARAMS)
+    payload = build_payload(args.season, done, todo, rs, raw, games, sim, completed=completed)
+    for w in payload['warnings']:
+        print(f"WARNING: {w}")
+
     try:
         validate(payload, done, pbp, previous)
         changed = publish(payload, args.out, args.snapshots,
@@ -53,7 +55,8 @@ def main(argv=None) -> int:
     except ValueError as e:
         print(f"FAILED: {e}", file=sys.stderr)
         return 1
-    print(f"OK: through week {payload['through_week']}, {len(payload['games'])} games remaining, changed={changed}")
+    print(f"OK: through week {payload['through_week']}, {len(payload['games'])} games remaining, "
+          f"{len(completed)} completed, changed={changed}")
     return 0
 
 

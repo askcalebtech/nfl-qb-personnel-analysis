@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { StrictMode } from 'react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ProjectionsLoader } from '../ProjectionsLoader'
 import { ProjectionsView } from '../ProjectionsView'
-import type { ProjectionGame, ProjectionTeam, ProjectionsData } from '@/types'
+import type { CompletedGame, ProjectionGame, ProjectionTeam, ProjectionsData } from '@/types'
 
 const nav = vi.hoisted(() => ({ replace: vi.fn(), search: '' }))
 vi.mock('next/navigation', () => ({
@@ -39,6 +39,14 @@ const base: ProjectionsData = {
   teams: [team('AAA', 'Alphas', 'AFC East'), team('BBB', 'Bravos', 'AFC East')],
   games: [game(9, 'AAA', 'BBB'), game(10, 'BBB', 'AAA')],
 }
+
+const final = (week: number, home: string, away: string, result: number, over: Partial<CompletedGame> = {}): CompletedGame => ({
+  ...game(week, home, away), game_id: `c${week}${home}`, gameday: '2026-11-05', p_home: 0.6, margin: 3,
+  source: 'published', predicted_at: '2026-11-03T19:27:48Z', home_starter: 'H.Then', away_starter: 'A.Then',
+  final: { home_score: result > 0 ? 20 + result : 20, away_score: result > 0 ? 20 : 20 - result, result,
+    close_mkt_home: 0.4, close_spread: -2 },
+  ...over,
+})
 
 describe('ProjectionsView', () => {
   test('header shows season, through week and result date', () => {
@@ -172,5 +180,60 @@ describe('ProjectionsLoader', () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
     render(<ProjectionsLoader />)
     expect(await screen.findByRole('alert')).toBeTruthy()
+  })
+
+  describe('completed games', () => {
+    test('a week mixes completed and upcoming games; completed shows final, pick and source', () => {
+      nav.search = 'week=9'
+      const data = { ...base, games: [game(9, 'AAA', 'BBB')], completed: [final(9, 'BBB', 'AAA', -10)] }
+      render(<ProjectionsView data={data} />)
+      expect(screen.getAllByRole('listitem')).toHaveLength(2)
+      expect(screen.getByTestId('final').textContent).toBe('Final: Alphas 30, Bravos 20')
+      expect(screen.getByTestId('model-pick').textContent).toContain('wrong')
+      expect(screen.getByText('Missed margin by 13.0 pts')).toBeTruthy()
+      expect(screen.getByText(/Prediction as published Nov 3/)).toBeTruthy()
+      const row = screen.getByTestId('final').closest('li') as HTMLElement
+      expect(within(row).getByText('Market (close)')).toBeTruthy()
+      expect(within(row).getByText('Alphas 60%')).toBeTruthy() // closing line, not the pre-game one
+      expect(screen.queryByText('Played, result not loaded yet')).toBeNull()
+    })
+
+    test('scorecard shows week and season records for model and market', () => {
+      nav.search = 'week=9'
+      const completed = [
+        final(8, 'AAA', 'BBB', 7, { source: 'backfill', predicted_at: null }),
+        final(9, 'BBB', 'AAA', -10),
+      ]
+      render(<ProjectionsView data={{ ...base, completed }} />)
+      expect(screen.getByTestId('Week 9-model-record').textContent).toBe('0-1 (0%)')
+      expect(screen.getByTestId('Week 9-market-record').textContent).toBe('1-0 (100%)')
+      expect(screen.getByTestId('Season to date-model-record').textContent).toBe('1-1 (50%)')
+      expect(screen.getByTestId('Season to date-model-mae').textContent).toBe('8.5 pts')
+    })
+
+    test('completed-only weeks are selectable and backfill is labeled', () => {
+      nav.search = 'week=8'
+      render(<ProjectionsView data={{ ...base, completed: [final(8, 'AAA', 'BBB', 7, { source: 'backfill', predicted_at: null })] }} />)
+      expect(screen.getByRole('heading', { name: 'Week 8 games' })).toBeTruthy()
+      expect(screen.getByText(/Backfilled: predicted from earlier weeks/)).toBeTruthy()
+      expect(screen.getByTestId('model-pick').textContent).toContain('right')
+    })
+
+    test('details use the starters at prediction time', async () => {
+      nav.search = 'week=9'
+      render(<ProjectionsView data={{ ...base, games: [], completed: [final(9, 'BBB', 'AAA', -10)] }} />)
+      await userEvent.click(screen.getByRole('button', { name: /Details/ }))
+      expect(screen.getByTestId('starter-home').textContent).toContain('H.Then')
+    })
+
+    test('after the season ends the last played week is shown, not the complete message', () => {
+      render(<ProjectionsView data={{ ...base, games: [], completed: [final(18, 'AAA', 'BBB', 3)] }} />)
+      expect(screen.getByRole('heading', { name: 'Week 18 games' })).toBeTruthy()
+    })
+
+    test('no scorecard without completed games', () => {
+      render(<ProjectionsView data={base} />)
+      expect(screen.queryByRole('region', { name: 'Model scorecard' })).toBeNull()
+    })
   })
 })

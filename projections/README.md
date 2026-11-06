@@ -18,6 +18,22 @@ python3 -m projections.run --season 2026 \
 - Validation runs before anything is written: 32 teams, probabilities in 0-1, every completed game present in play-by-play, no non-finite numbers, and `through_week` not lower than the published file's. On failure the command exits nonzero and leaves the output and snapshot untouched.
 - The output is rewritten only when something other than `generated_at` changed. The snapshot (`{season}-through-wk{NN}.json`) for `through_week` is written when the output changes or the snapshot is missing, and isn't overwritten once any game after `through_week` has been played, so a no-op rerun leaves the repo clean. `through_week` is the last week in which every scheduled game has a result. The last line reads `OK: through week N, M games remaining, changed=True/False`.
 - Unknown-starter warnings are printed and also stored in the JSON's `warnings`.
+
+### Completed games
+
+`games` holds only unplayed games. Every completed game is in `completed`, where its pre-game prediction is kept next to the actual result. The page shows these games in their week and adds a scorecard comparing the model with the closing market. Each entry has:
+
+- The same prediction fields as a `games` entry, plus `home_starter`, `away_starter`, `source` and `predicted_at`. These are **frozen**: they are set the first time a game shows up as completed and are never recomputed. `validate` fails if a run would change them.
+- `final`: `home_score`, `away_score`, `result` (home margin), `close_mkt_home` (vig removed) and `close_spread` (positive favors home). These are refreshed from `games.csv` on every run, so nflverse score corrections still come through.
+
+Where the frozen prediction comes from, in order:
+
+1. The published file's `completed`, carried forward verbatim.
+2. The published file's `games`, giving the last prediction published before the game (`source: "published"`, `predicted_at` = that file's `generated_at`).
+3. The latest snapshot in `--snapshots` that lists the game, also `published`.
+4. Otherwise a walk-forward **backfill** (`source: "backfill"`, `predicted_at: null`). It uses ratings built only from games in earlier weeks, default starters and no overrides, the same method as `backtest.walk_forward_rows`.
+
+The site started publishing on Nov 3, 2026, so Weeks 1–8 of 2026 are backfilled. Week 1 has no earlier games and is home field only. The backfill uses constants fit on 2022–2026 data that includes these games, so it slightly flatters the model.
 - A run takes about 12 seconds; almost all of that is the Monte Carlo.
 
 ### Annual season bump

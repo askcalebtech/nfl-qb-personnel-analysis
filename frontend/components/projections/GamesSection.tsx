@@ -1,27 +1,34 @@
 'use client'
 
 import { GameRow } from './GameRow'
+import { ModelScorecard } from './ModelScorecard'
 import { isPastGameday, type Scope } from '@/lib/projections'
-import type { ProjectionGame, ProjectionTeam } from '@/types'
+import type { CompletedGame, ProjectionGame, ProjectionTeam } from '@/types'
 
 interface Props {
   week: number | null
   weeks: number[]
-  games: ProjectionGame[] // already filtered to scope and week
+  games: ProjectionGame[] // unplayed, already filtered to scope and week
+  completed?: CompletedGame[] // completed, already filtered to scope and week
+  seasonCompleted?: CompletedGame[] // completed, filtered to scope, all weeks
   teams: ProjectionTeam[]
   scope: Scope
   onWeekChange: (w: number) => void
 }
 
-export function GamesSection({ week, weeks, games, teams, scope, onWeekChange }: Props) {
+export function GamesSection({ week, weeks, games, completed = [], seasonCompleted = [], teams, scope, onWeekChange }: Props) {
   const byCode = new Map(teams.map((t) => [t.team, t]))
   const scopeTeam = scope.kind === 'team' ? byCode.get(scope.value) : undefined
 
   const anyPlayed = games.some((g) => isPastGameday(g.gameday, new Date()))
 
+  const rows: (ProjectionGame | CompletedGame)[] = [...completed, ...games].sort(
+    (a, b) => (a.gameday ?? '').localeCompare(b.gameday ?? '') || a.game_id.localeCompare(b.game_id),
+  )
+
   let empty: string | null = null
   if (week === null) empty = 'The regular season is complete.'
-  else if (games.length === 0)
+  else if (rows.length === 0)
     empty = scopeTeam ? `${scopeTeam.name} is on bye in Week ${week}.` : `No games match this filter in Week ${week}.`
 
   return (
@@ -47,6 +54,7 @@ export function GamesSection({ week, weeks, games, teams, scope, onWeekChange }:
           </label>
         )}
       </div>
+      <ModelScorecard week={week} weekGames={completed} seasonGames={seasonCompleted} />
       {empty ? (
         <p className="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-700">{empty}</p>
       ) : (
@@ -57,7 +65,7 @@ export function GamesSection({ week, weeks, games, teams, scope, onWeekChange }:
           </p>
         )}
         <ul className="space-y-2">
-          {games.map((g) => {
+          {rows.map((g) => {
             const home = byCode.get(g.home)
             const away = byCode.get(g.away)
             return home && away ? <GameRow key={g.game_id} game={g} home={home} away={away} /> : null

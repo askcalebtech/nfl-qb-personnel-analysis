@@ -71,7 +71,8 @@ def has_later_results(done, through_week) -> bool:
     return bool(len(done) and (done.week > through_week).any())
 
 
-def build_payload(season, done, todo, rs, raw, games, sim, model_version=None, generated_at=None) -> dict:
+def build_payload(season, done, todo, rs, raw, games, sim, model_version=None, generated_at=None,
+                  completed=None) -> dict:
     from .constants import MODEL_VERSION
     record = _records(done)
     teams = []
@@ -85,21 +86,106 @@ def build_payload(season, done, todo, rs, raw, games, sim, model_version=None, g
             rush_off=_num(rs.ro[t], 5), rush_def=_num(rs.rd[t], 5),
             avg_wins=_num(s['avg_wins'], 3), wins_p10=_num(s['p10'], 1), wins_p90=_num(s['p90'], 1),
             div=_num(s['div']), playoffs=_num(s['playoffs']), seed1=_num(s['seed1'])))
-    out_games = []
-    for g in sorted(games, key=lambda g: (g['week'], g['gameday'] or '', g['game_id'])):
-        c = g['components']
-        out_games.append(dict(
-            game_id=g['game_id'], week=g['week'], gameday=g['gameday'], away=g['away'], home=g['home'],
-            neutral=bool(g['neutral']), stadium=g['stadium'], p_home=_num(g['p_home']), margin=_num(g['margin']),
-            nudge=_num(g['nudge']), mkt_home=_num(g['mkt_home']), spread=_num(g['spread']),
-            components={k: _num(v) for k, v in c.items()}))
+    out_games = [_game_out(g) for g in sorted(games, key=_game_key)]
     through = _through_week(done, todo)
     last_result = _txt(done.gameday.max()) if len(done) and 'gameday' in done else None
     return dict(season=int(season), through_week=through, last_result_date=last_result,
                 generated_at=generated_at or datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
                 league_anya=_num(raw.lg, 4) if len(done) else None,
                 model_version=model_version or MODEL_VERSION,
-                warnings=list(rs.warnings), teams=teams, games=out_games)
+                warnings=list(rs.warnings), teams=teams, games=out_games,
+                completed=list(completed or []))
+
+
+def _game_key(g):
+    return (g['week'], g['gameday'] or '', g['game_id'])
+
+
+def _game_out(g) -> dict:
+    """A build_games entry, rounded for the JSON."""
+    return dict(
+        game_id=g['game_id'], week=g['week'], gameday=g['gameday'], away=g['away'], home=g['home'],
+        neutral=bool(g['neutral']), stadium=g['stadium'], p_home=_num(g['p_home']), margin=_num(g['margin']),
+        nudge=_num(g['nudge']), mkt_home=_num(g['mkt_home']), spread=_num(g['spread']),
+        components={k: _num(v) for k, v in g['components'].items()})
+
+
+# ---- Completed games: a frozen pre-game prediction plus the actual result ----
+
+def _prediction(entry) -> dict:
+    """The frozen part of a completed entry (everything except `final`)."""
+    return {k: v for k, v in entry.items() if k != 'final'}
+
+
+def _final(r) -> dict:
+    """Actual result and closing market for a completed games.csv row. Refreshed every run."""
+    pa, ph = _ml_prob(r.get('away_moneyline')), _ml_prob(r.get('home_moneyline'))
+    return dict(home_score=_int(r.get('home_score')), away_score=_int(r.get('away_score')),
+                result=_num(r.get('result'), 1), close_mkt_home=_num(ph/(pa + ph)) if pa and ph else None,
+                close_spread=_num(r.get('spread_line')))
+
+
+def _int(x):
+    return None if x is None or pd.isna(x) else int(x)
+
+
+def _freeze(game, teams, predicted_at, source='published') -> dict:
+    starters = {t['team']: t.get('starter') for t in teams or []}
+    return dict(game, home_starter=starters.get(game['home']), away_starter=starters.get(game['away']),
+                source=source, predicted_at=predicted_at)
+
+
+def _snapshot_files(snapshots_dir, season) -> list:
+    """Snapshot paths for `season`, latest through_week first."""
+    if not snapshots_dir or not os.path.isdir(snapshots_dir):
+        return []
+    prefix = f"{season}-through-wk"
+    names = [n for n in os.listdir(snapshots_dir) if n.startswith(prefix) and n.endswith('.json')]
+    return [os.path.join(snapshots_dir, n) for n in sorted(names, reverse=True)]
+
+
+def _backfill(done, pbp, ids, params) -> dict:
+    """Walk-forward predictions for completed games with no saved one: ratings use only games from strictly
+    earlier weeks, with default starters (no overrides). Same method as backtest.walk_forward_rows."""
+    from .ratings import build_ratings
+    out = {}
+    need = done[done.game_id.isin(ids)]
+    for week in sorted(need.week.unique()):
+        prior = done[done.week < week]
+        rs = build_ratings(prior, pbp[pbp.game_id.isin(prior.game_id)], {}, params)
+        for g in build_games(need[need.week == week], rs, params):
+            starters = {t: rs.starter[t] for t in (g['home'], g['away'])}
+            out[g['game_id']] = dict(_game_out(g), home_starter=starters[g['home']],
+                                     away_starter=starters[g['away']], source='backfill', predicted_at=None)
+    return out
+
+
+def build_completed(season, done, pbp, previous, snapshots_dir, params) -> list:
+    """One entry per completed game: the pre-game prediction, frozen the first time the game is seen as
+    completed, plus `final` (actual result, closing market) refreshed from the schedule every run.
+
+    The prediction comes from, in order: the published file's `completed` (carried forward verbatim), its
+    `games` (the last published pre-game prediction), the latest snapshot that lists the game, and finally a
+    walk-forward backfill for games that were never published."""
+    prev = previous if previous and previous.get('season') == season else {}
+    frozen = {e['game_id']: _prediction(e) for e in prev.get('completed') or []}
+    ids = set(done.game_id)
+    for g in prev.get('games') or []:
+        if g['game_id'] in ids and g['game_id'] not in frozen:
+            frozen[g['game_id']] = _freeze(g, prev.get('teams'), prev.get('generated_at'))
+    for path in _snapshot_files(snapshots_dir, season):
+        if ids <= set(frozen):
+            break
+        with open(path) as f:
+            snap = json.load(f)
+        for g in snap.get('games') or []:
+            if g['game_id'] in ids and g['game_id'] not in frozen:
+                frozen[g['game_id']] = _freeze(g, snap.get('teams'), snap.get('generated_at'))
+    missing = ids - set(frozen)
+    if missing:
+        frozen.update(_backfill(done, pbp, missing, params))
+    out = [dict(frozen[r['game_id']], final=_final(r)) for r in done.to_dict('records')]
+    return sorted(out, key=_game_key)
 
 
 def _walk(x, path="payload"):
@@ -124,6 +210,10 @@ def validate(payload, done, pbp, previous: Optional[dict] = None) -> None:
     probs += [(f"games[{i}].mkt_home", g.get('mkt_home')) for i, g in enumerate(payload.get('games', []))]
     for t in teams:
         probs += [(f"{t['team']}.{k}", t.get(k)) for k in ('div', 'playoffs', 'seed1')]
+    completed = payload.get('completed') or []
+    for i, g in enumerate(completed):
+        probs += [(f"completed[{i}].p_home", g.get('p_home')), (f"completed[{i}].mkt_home", g.get('mkt_home')),
+                  (f"completed[{i}].final.close_mkt_home", (g.get('final') or {}).get('close_mkt_home'))]
     for path, p in probs:
         if p is None and path.endswith('mkt_home'):
             continue
@@ -132,6 +222,20 @@ def validate(payload, done, pbp, previous: Optional[dict] = None) -> None:
     missing = set(done.game_id) - set(pbp.game_id)
     if missing:
         raise ValueError(f"{len(missing)} completed games have no play-by-play rows: {sorted(missing)[:5]}")
+    if 'completed' in payload:
+        cids = [g['game_id'] for g in completed]
+        if len(cids) != len(set(cids)) or set(cids) != set(done.game_id):
+            raise ValueError(f"completed has {len(set(cids))} distinct games, expected the {done.game_id.nunique()} "
+                             f"completed games")
+        both = set(cids) & {g['game_id'] for g in payload.get('games', [])}
+        if both:
+            raise ValueError(f"games listed as both completed and remaining: {sorted(both)[:5]}")
+        if previous and previous.get('season') == payload.get('season'):
+            now = {g['game_id']: _prediction(g) for g in completed}
+            changed = [e['game_id'] for e in previous.get('completed') or []
+                       if e['game_id'] in now and now[e['game_id']] != _prediction(e)]
+            if changed:
+                raise ValueError(f"frozen predictions changed for completed games: {sorted(changed)[:5]}")
     tw = payload.get('through_week')
     if not isinstance(tw, int) or not (0 <= tw <= 18):
         raise ValueError(f"through_week {tw} outside 0-18")

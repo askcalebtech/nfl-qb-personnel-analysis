@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 
 from projections.constants import PARAMS, TEAMS
-from projections.output import (build_games, build_payload, publish, validate, write_if_changed,
+from projections.output import (build_completed, build_games, build_payload, publish, validate, write_if_changed,
                                  write_snapshot)
 from projections.ratings import build_ratings, dropbacks, raw_values
 from projections.simulate import simulate
@@ -42,7 +42,7 @@ def _todo(ml=(-150, 130)):
     ])
 
 
-def make(done=None, todo=None, n_sims=50):
+def make(done=None, todo=None, n_sims=50, previous=None, snapshots=None):
     done = _done() if done is None else done
     todo = _todo() if todo is None else todo
     pbp = _pbp(done) if len(done) else frame([])
@@ -50,7 +50,8 @@ def make(done=None, todo=None, n_sims=50):
     raw = raw_values(dropbacks(pbp))
     games = build_games(todo, rs, PARAMS)
     sim = simulate(done, games, n_sims=n_sims)
-    payload = build_payload(SEASON, done, todo, rs, raw, games, sim)
+    completed = build_completed(SEASON, done, pbp, previous, snapshots, PARAMS)
+    payload = build_payload(SEASON, done, todo, rs, raw, games, sim, completed=completed)
     return payload, done, pbp, todo
 
 
@@ -287,3 +288,116 @@ def test_has_later_results():
     from projections.output import has_later_results
     d = _done()
     assert has_later_results(d, 1) and not has_later_results(d, 2) and not has_later_results(d.iloc[0:0], 0)
+
+
+# ---- Completed games ----
+
+def _by_id(entries):
+    return {e['game_id']: e for e in entries}
+
+
+def test_completed_backfills_every_done_game_with_final():
+    payload, done, pbp, _ = make()
+    c = _by_id(payload['completed'])
+    assert set(c) == set(done.game_id)
+    assert all(e['source'] == 'backfill' and e['predicted_at'] is None for e in c.values())
+    assert c['g1']['final']['result'] == 7.0
+    # Week 1 has no earlier games, so only home field counts.
+    assert c['g1']['margin'] == pytest.approx(PARAMS.hfa, abs=1e-3)
+    json.dumps(payload, allow_nan=False)
+
+
+def test_backfill_uses_only_earlier_weeks():
+    base = _by_id(make()[0]['completed'])
+    done = _done()
+    done.loc[done.game_id == 'g2', 'result'] = 30  # a week-2 result must not change a week-2 prediction
+    changed = _by_id(make(done=done)[0]['completed'])
+    for gid in ('g1', 'g2', 'g3'):
+        assert {k: v for k, v in changed[gid].items() if k != 'final'} == \
+               {k: v for k, v in base[gid].items() if k != 'final'}
+    assert changed['g2']['final']['result'] == 30.0
+
+
+def test_completed_frozen_from_previous_games():
+    prev, *_ = make(done=_done().iloc[:1], todo=pd.concat([_todo(), _done().iloc[1:].assign(result=float('nan'))]))
+    pre = _by_id(prev['games'])['g2']
+    payload, done, pbp, _ = make(previous=prev)
+    g2 = _by_id(payload['completed'])['g2']
+    assert g2['source'] == 'published' and g2['predicted_at'] == prev['generated_at']
+    assert g2['p_home'] == pre['p_home'] and g2['margin'] == pre['margin']
+    assert g2['home_starter'] == {t['team']: t['starter'] for t in prev['teams']}['MIA']
+    assert g2['final']['result'] == -3.0
+    validate(payload, done, pbp, prev)
+
+
+def test_completed_carried_forward_and_score_refreshed():
+    prev, *_ = make()
+    prev['completed'][0]['p_home'] = 0.1234  # proves it is carried verbatim, not recomputed
+    gid = prev['completed'][0]['game_id']
+    done = _done()
+    done.loc[done.game_id == gid, 'result'] = 9
+    payload, done, pbp, _ = make(done=done, previous=prev)
+    e = _by_id(payload['completed'])[gid]
+    assert e['p_home'] == 0.1234 and e['final']['result'] == 9.0
+    validate(payload, done, pbp, prev)
+
+
+def test_completed_frozen_from_latest_snapshot(tmp_path):
+    early, *_ = make(done=_done().iloc[:1], todo=pd.concat([_todo(), _done().iloc[1:].assign(result=float('nan'))]))
+    old = copy.deepcopy(early)
+    for g in old['games']:
+        g['p_home'] = 0.01
+    old['through_week'] = 0
+    (tmp_path / f'{SEASON}-through-wk00.json').write_text(json.dumps(old))
+    (tmp_path / f'{SEASON}-through-wk01.json').write_text(json.dumps(early))
+    (tmp_path / f'{SEASON - 1}-through-wk17.json').write_text(json.dumps({'games': [dict(g, p_home=0.99)
+                                                                                    for g in early['games']]}))
+    payload, *_ = make(snapshots=str(tmp_path))
+    c = _by_id(payload['completed'])
+    assert c['g2']['source'] == 'published' and c['g2']['p_home'] == _by_id(early['games'])['g2']['p_home']
+    assert c['g1']['source'] == 'backfill'
+
+
+def test_previous_from_other_season_ignored():
+    prev, *_ = make()
+    prev['season'] = SEASON - 1
+    prev['completed'][0]['p_home'] = 0.5555
+    payload, *_ = make(previous=prev)
+    assert all(e['p_home'] != 0.5555 for e in payload['completed'])
+
+
+def test_validate_rejects_missing_or_duplicate_completed():
+    payload, done, pbp, _ = make()
+    bad = copy.deepcopy(payload)
+    bad['completed'].pop()
+    with pytest.raises(ValueError, match='completed has'):
+        validate(bad, done, pbp)
+    bad = copy.deepcopy(payload)
+    bad['completed'].append(bad['completed'][0])
+    with pytest.raises(ValueError, match='completed has'):
+        validate(bad, done, pbp)
+
+
+def test_validate_rejects_game_both_completed_and_remaining():
+    payload, done, pbp, _ = make()
+    payload['games'].append(dict(payload['games'][0], game_id='g1'))
+    with pytest.raises(ValueError, match='both completed and remaining'):
+        validate(payload, done, pbp)
+
+
+def test_validate_rejects_changed_frozen_prediction():
+    prev, done, pbp, _ = make()
+    payload = copy.deepcopy(prev)
+    payload['completed'][0]['margin'] += 1
+    with pytest.raises(ValueError, match='frozen predictions changed'):
+        validate(payload, done, pbp, prev)
+    payload = copy.deepcopy(prev)
+    payload['completed'][0]['final']['result'] = 99.0  # results may change
+    validate(payload, done, pbp, prev)
+
+
+def test_validate_rejects_completed_probability_out_of_range():
+    payload, done, pbp, _ = make()
+    payload['completed'][0]['p_home'] = 1.5
+    with pytest.raises(ValueError, match='probability'):
+        validate(payload, done, pbp)

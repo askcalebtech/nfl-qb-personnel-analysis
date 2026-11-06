@@ -1,4 +1,4 @@
-import type { ProjectionGame, ProjectionTeam } from '@/types'
+import type { CompletedGame, ProjectionGame, ProjectionTeam } from '@/types'
 
 export type Scope =
   | { kind: 'all' }
@@ -31,7 +31,7 @@ export function teamsInScope(teams: ProjectionTeam[], s: Scope): ProjectionTeam[
   return teams.filter((t) => inScope(t, s))
 }
 
-export function gamesInScope(games: ProjectionGame[], teams: ProjectionTeam[], s: Scope): ProjectionGame[] {
+export function gamesInScope<G extends ProjectionGame>(games: G[], teams: ProjectionTeam[], s: Scope): G[] {
   if (s.kind === 'all') return games
   const codes = new Set(teamsInScope(teams, s).map((t) => t.team))
   return games.filter((g) => codes.has(g.home) || codes.has(g.away))
@@ -79,4 +79,52 @@ export function rankRatings(teams: ProjectionTeam[], view: 'raw' | 'adjusted'): 
     })
     .sort((a, b) => b.total - a.total)
     .map((r, i) => ({ ...r, rank: i + 1 }))
+}
+
+/** Model picked the winner: true/false, or null for a tie, a missing result or a 50-50 pick. */
+export function modelCorrect(g: CompletedGame): boolean | null {
+  const r = g.final.result
+  if (r === null || r === 0 || g.p_home === 0.5) return null
+  return r > 0 === g.p_home > 0.5
+}
+
+/** Closing market picked the winner, same rules; null when there is no closing line. */
+export function marketCorrect(g: CompletedGame): boolean | null {
+  const r = g.final.result
+  const m = g.final.close_mkt_home
+  if (r === null || r === 0 || m === null || m === 0.5) return null
+  return r > 0 === m > 0.5
+}
+
+/** Absolute points between projected and actual home margin. */
+export function marginMiss(g: CompletedGame): number | null {
+  return g.final.result === null ? null : Math.abs(g.margin - g.final.result)
+}
+
+export interface Score {
+  games: number // games with a result
+  picks: number // games with a decided pick (ties and 50-50s excluded)
+  correct: number
+  mae: number | null // mean absolute margin miss, points
+}
+
+function tally(games: CompletedGame[], correct: (g: CompletedGame) => boolean | null,
+  miss: (g: CompletedGame) => number | null): Score {
+  const picks = games.map(correct).filter((c): c is boolean => c !== null)
+  const misses = games.map(miss).filter((m): m is number => m !== null)
+  return {
+    games: games.filter((g) => g.final.result !== null).length,
+    picks: picks.length,
+    correct: picks.filter(Boolean).length,
+    mae: misses.length ? misses.reduce((a, b) => a + b, 0) / misses.length : null,
+  }
+}
+
+/** Model and closing-market record over the same games. The market margin is the closing spread. */
+export function scorecard(games: CompletedGame[]): { model: Score; market: Score } {
+  return {
+    model: tally(games, modelCorrect, marginMiss),
+    market: tally(games, marketCorrect, (g) =>
+      g.final.result === null || g.final.close_spread === null ? null : Math.abs(g.final.close_spread - g.final.result)),
+  }
 }

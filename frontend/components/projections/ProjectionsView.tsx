@@ -22,8 +22,13 @@ export function ProjectionsView({ data }: { data: ProjectionsData }) {
   const sp = useSearchParams()
 
   const scope = useMemo(() => parseScope(sp.get('scope'), data.teams), [sp, data.teams])
-  const weeks = useMemo(() => Array.from(new Set(data.games.map((g) => g.week))).sort((a, b) => a - b), [data.games])
-  const fallback = defaultWeek(data.games)
+  const completed = useMemo(() => data.completed ?? [], [data.completed])
+  const weeks = useMemo(
+    () => Array.from(new Set([...completed, ...data.games].map((g) => g.week))).sort((a, b) => a - b),
+    [completed, data.games],
+  )
+  // Earliest week with unplayed games; once the season is over, the last week played.
+  const fallback = defaultWeek(data.games) ?? (weeks.length ? weeks[weeks.length - 1] : null)
   const weekParam = Number(sp.get('week'))
   const week = weeks.includes(weekParam) ? weekParam : fallback
 
@@ -41,6 +46,8 @@ export function ProjectionsView({ data }: { data: ProjectionsData }) {
   const scopedTeams = teamsInScope(data.teams, scope)
   const scopedGames = gamesInScope(data.games, data.teams, scope)
   const weekGames = scopedGames.filter((g) => g.week === week)
+  const scopedCompleted = gamesInScope(completed, data.teams, scope)
+  const weekCompleted = scopedCompleted.filter((g) => g.week === week)
   const stale = isStale(data.generated_at, new Date(), data.games.length)
   const generated = new Date(data.generated_at)
   const generatedText = Number.isNaN(generated.getTime()) ? data.generated_at : generated.toLocaleString()
@@ -77,6 +84,8 @@ export function ProjectionsView({ data }: { data: ProjectionsData }) {
         week={week}
         weeks={weeks}
         games={weekGames}
+        completed={weekCompleted}
+        seasonCompleted={scopedCompleted}
         teams={data.teams}
         scope={scope}
         onWeekChange={(w) => update({ week: w })}

@@ -148,6 +148,24 @@ export interface ProjectionGame {
   components: GameComponents
 }
 
+/** Actual result and closing market for a completed game, refreshed every run. */
+export interface GameFinal {
+  home_score: number | null
+  away_score: number | null
+  result: number | null // actual home margin, points
+  close_mkt_home: number | null // 0-1 closing market home win probability
+  close_spread: number | null // closing spread, positive favors home
+}
+
+/** A completed game: the pre-game prediction (frozen) plus the actual result. */
+export interface CompletedGame extends ProjectionGame {
+  final: GameFinal
+  source: 'published' | 'backfill' // as published, or recomputed from earlier weeks' games only
+  predicted_at: string | null // ISO UTC of the published file, null for backfill
+  home_starter: string | null
+  away_starter: string | null
+}
+
 export interface ProjectionsData {
   season: number
   through_week: number
@@ -158,4 +176,5 @@ export interface ProjectionsData {
   warnings: string[]
   teams: ProjectionTeam[]
   games: ProjectionGame[]
+  completed?: CompletedGame[] // absent in files published before results were kept
 }

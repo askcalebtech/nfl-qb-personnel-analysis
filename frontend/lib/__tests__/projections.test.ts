@@ -1,8 +1,9 @@
 import { describe, expect, test } from 'vitest'
 import {
-  defaultWeek, gamesInScope, isPastGameday, isStale, parseScope, rankRatings, scopeToParam, teamsInScope, type Scope,
+  defaultWeek, gamesInScope, isPastGameday, isStale, marginMiss, marketCorrect, modelCorrect, parseScope, rankRatings,
+  scopeToParam, scorecard, teamsInScope, type Scope,
 } from '@/lib/projections'
-import type { ProjectionGame, ProjectionTeam } from '@/types'
+import type { CompletedGame, ProjectionGame, ProjectionTeam } from '@/types'
 
 const t = (team: string, conference: string, division: string, off: number, def: number,
   adj_off: number, adj_def: number): ProjectionTeam => ({
@@ -111,5 +112,42 @@ describe('isPastGameday', () => {
   test('crosses month and year boundaries', () => {
     expect(isPastGameday('2026-12-31', new Date(2027, 0, 1))).toBe(true)
     expect(isPastGameday('2026-10-31', new Date(2026, 10, 1))).toBe(true)
+  })
+})
+
+const done = (id: string, p_home: number, margin: number, result: number | null,
+  close_mkt_home: number | null = null, close_spread: number | null = null): CompletedGame => ({
+  ...g(id, 9, 'MIA', 'BUF'), p_home, margin, source: 'backfill', predicted_at: null,
+  home_starter: null, away_starter: null,
+  final: { home_score: null, away_score: null, result, close_mkt_home, close_spread },
+})
+
+describe('completed games', () => {
+  test('modelCorrect and marginMiss', () => {
+    expect(modelCorrect(done('a', 0.6, 3, 7))).toBe(true)
+    expect(modelCorrect(done('a', 0.6, 3, -7))).toBe(false)
+    expect(modelCorrect(done('a', 0.4, -3, -1))).toBe(true)
+    expect(modelCorrect(done('a', 0.6, 3, 0))).toBeNull() // tie
+    expect(modelCorrect(done('a', 0.5, 0, 3))).toBeNull() // no pick
+    expect(modelCorrect(done('a', 0.6, 3, null))).toBeNull()
+    expect(marginMiss(done('a', 0.6, 3, -7))).toBe(10)
+    expect(marginMiss(done('a', 0.6, 3, null))).toBeNull()
+  })
+
+  test('marketCorrect uses the closing probability and needs a line', () => {
+    expect(marketCorrect(done('a', 0.6, 3, -7, 0.3, -4))).toBe(true)
+    expect(marketCorrect(done('a', 0.6, 3, -7, null, null))).toBeNull()
+  })
+
+  test('scorecard counts picks, skips ties and missing lines, averages misses', () => {
+    const s = scorecard([
+      done('a', 0.6, 3, 7, 0.7, 6), // model right (miss 4), market right (miss 1)
+      done('b', 0.6, 3, -7, 0.3, -4), // model wrong (miss 10), market right (miss 3)
+      done('c', 0.6, 3, 0, 0.6, 2), // tie: no picks, misses 3 and 2
+      done('d', 0.4, -1, -3, null, null), // model right (miss 2), no market
+    ])
+    expect(s.model).toEqual({ games: 4, picks: 3, correct: 2, mae: (4 + 10 + 3 + 2) / 4 })
+    expect(s.market).toEqual({ games: 4, picks: 2, correct: 2, mae: (1 + 3 + 2) / 3 })
+    expect(scorecard([]).model.mae).toBeNull()
   })
 })

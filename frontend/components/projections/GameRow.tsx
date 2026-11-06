@@ -2,11 +2,11 @@
 
 import { useId, useState } from 'react'
 import { fmt, marginLabel, pct } from '@/lib/format'
-import { isPastGameday } from '@/lib/projections'
-import type { ProjectionGame, ProjectionTeam } from '@/types'
+import { isPastGameday, marginMiss, modelCorrect } from '@/lib/projections'
+import type { CompletedGame, ProjectionGame, ProjectionTeam } from '@/types'
 
 interface Props {
-  game: ProjectionGame
+  game: ProjectionGame | CompletedGame
   home: ProjectionTeam
   away: ProjectionTeam
   showWeek?: boolean
@@ -30,19 +30,66 @@ function Pts({ label, value, testId, strong }: { label: string; value: number; t
   )
 }
 
+function isCompleted(g: ProjectionGame | CompletedGame): g is CompletedGame {
+  return 'final' in g && g.final !== undefined
+}
+
+function formatPublished(iso: string | null): string | null {
+  if (!iso) return null
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
+
+function Result({ game, home, away }: { game: CompletedGame; home: ProjectionTeam; away: ProjectionTeam }) {
+  const f = game.final
+  const correct = modelCorrect(game)
+  const miss = marginMiss(game)
+  const published = formatPublished(game.predicted_at)
+  const source =
+    game.source === 'backfill'
+      ? 'Backfilled: predicted from earlier weeks\u2019 games only'
+      : `Prediction as published${published ? ` ${published}` : ''}`
+  return (
+    <div className="mt-1 space-y-1">
+      <p className="text-sm text-gray-900" data-testid="final">
+        <span className="font-semibold">Final:</span> {away.name} {f.away_score ?? '—'}, {home.name} {f.home_score ?? '—'}
+      </p>
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        {correct !== null && (
+          <span
+            data-testid="model-pick"
+            className={`rounded border px-1.5 py-0.5 font-medium ${
+              correct ? 'border-green-600 bg-green-50 text-green-900' : 'border-red-600 bg-red-50 text-red-900'
+            }`}
+          >
+            {correct ? '✓ Model pick right' : '✗ Model pick wrong'}
+          </span>
+        )}
+        {correct === null && f.result === 0 && <span className="text-gray-700">Tie</span>}
+        {miss !== null && <span className="text-gray-700">Missed margin by {miss.toFixed(1)} pts</span>}
+      </div>
+      <p className="text-xs text-gray-600">{source}</p>
+    </div>
+  )
+}
+
 export function GameRow({ game, home, away, showWeek = false }: Props) {
   const [open, setOpen] = useState(false)
   const panelId = useId()
   const c = game.components
+  const completed = isCompleted(game) ? game : null
   const favorite = game.margin >= 0 ? home : away
+  const mktHome = completed ? completed.final.close_mkt_home : game.mkt_home
   const mkt =
-    game.mkt_home === null
+    mktHome === null
       ? '—'
-      : game.mkt_home >= 0.5
-        ? `${home.name} ${pct(game.mkt_home)}`
-        : `${away.name} ${pct(1 - game.mkt_home)}`
+      : mktHome >= 0.5
+        ? `${home.name} ${pct(mktHome)}`
+        : `${away.name} ${pct(1 - mktHome)}`
   const day = formatDay(game.gameday)
-  const played = isPastGameday(game.gameday, new Date())
+  const played = !completed && isPastGameday(game.gameday, new Date())
+  const homeStarter = completed ? completed.home_starter : home.starter
+  const awayStarter = completed ? completed.away_starter : away.starter
 
   return (
     <li className="rounded-lg border border-gray-200 bg-white p-3 text-gray-900">
@@ -56,6 +103,7 @@ export function GameRow({ game, home, away, showWeek = false }: Props) {
               .filter(Boolean)
               .join(' · ')}
           </p>
+          {completed && <Result game={completed} home={home} away={away} />}
           {played && (
             <p className="mt-1 inline-block rounded border border-amber-400 bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-900">
               Played, result not loaded yet
@@ -64,7 +112,7 @@ export function GameRow({ game, home, away, showWeek = false }: Props) {
         </div>
         <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
           <div>
-            <div className="text-xs text-gray-600">Win %</div>
+            <div className="text-xs text-gray-600">{completed ? 'Pre-game win %' : 'Win %'}</div>
             <div className="tabular-nums text-gray-900">
               {away.name} {pct(1 - game.p_home)} · {home.name} {pct(game.p_home)}
             </div>
@@ -74,7 +122,7 @@ export function GameRow({ game, home, away, showWeek = false }: Props) {
             <div className="text-gray-900">{marginLabel(favorite.name, game.margin)}</div>
           </div>
           <div className="border-l border-gray-300 pl-4">
-            <div className="text-xs text-gray-600">Market</div>
+            <div className="text-xs text-gray-600">{completed ? 'Market (close)' : 'Market'}</div>
             <div className="tabular-nums text-gray-900">{mkt}</div>
           </div>
         </div>
@@ -117,10 +165,10 @@ export function GameRow({ game, home, away, showWeek = false }: Props) {
               <p className="mb-1 text-gray-700">QB adjustments (already included in matchup)</p>
               <ul className="space-y-1 text-gray-900">
                 <li data-testid="starter-home">
-                  {home.name}: {home.starter ?? '—'}, {fmt(c.home_qb_adj_pts, 1, true)} pts
+                  {home.name}: {homeStarter ?? '—'}, {fmt(c.home_qb_adj_pts, 1, true)} pts
                 </li>
                 <li data-testid="starter-away">
-                  {away.name}: {away.starter ?? '—'}, {fmt(c.away_qb_adj_pts, 1, true)} pts
+                  {away.name}: {awayStarter ?? '—'}, {fmt(c.away_qb_adj_pts, 1, true)} pts
                 </li>
               </ul>
             </div>
