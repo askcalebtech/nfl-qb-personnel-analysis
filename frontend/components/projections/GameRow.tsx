@@ -45,10 +45,16 @@ function Result({ game, home, away }: { game: CompletedGame; home: ProjectionTea
   const correct = modelCorrect(game)
   const miss = marginMiss(game)
   const published = formatPublished(game.predicted_at)
+  const byCode: Record<string, ProjectionTeam> = { [home.team]: home, [away.team]: away }
+  const fixed = Object.entries(game.corrected_starters ?? {})
+    .map(([t, qb]) => `${qb} at QB for the ${byCode[t]?.name ?? t}`)
+    .join(' and ')
   const source =
     game.source === 'backfill'
       ? 'Backfilled: predicted from earlier weeks\u2019 games only'
-      : `Prediction as published${published ? ` ${published}` : ''}`
+      : game.source === 'corrected'
+        ? `Prediction from ${published ?? 'publication'}, corrected to ${fixed || 'the actual starter'}`
+        : `Prediction as published${published ? ` ${published}` : ''}`
   return (
     <div className="mt-1 space-y-1">
       <p className="text-sm text-gray-900" data-testid="final">

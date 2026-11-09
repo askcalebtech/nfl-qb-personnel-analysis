@@ -231,6 +231,18 @@ describe('ProjectionsLoader', () => {
       expect(screen.getByRole('heading', { name: 'Week 18 games' })).toBeTruthy()
     })
 
+    test('a corrected prediction is shown and scored like any other', () => {
+      nav.search = 'week=9'
+      const g = final(9, 'BBB', 'AAA', 1, {
+        p_home: 0.52, margin: 0.5, source: 'corrected', corrected_starters: { AAA: 'S.Backup' }, note: 'Backup started.',
+      })
+      render(<ProjectionsView data={{ ...base, games: [], completed: [g] }} />)
+      expect(screen.getByText('Prediction from Nov 3, corrected to S.Backup at QB for the Alphas')).toBeTruthy()
+      expect(screen.getByTestId('model-pick').textContent).toContain('right')
+      expect(screen.getByTestId('Week 9-model-record').textContent).toBe('1-0 (100%)')
+      expect(screen.queryByTestId('whatif')).toBeNull()
+    })
+
     test('no scorecard without completed games', () => {
       render(<ProjectionsView data={base} />)
       expect(screen.queryByRole('region', { name: 'Model scorecard' })).toBeNull()

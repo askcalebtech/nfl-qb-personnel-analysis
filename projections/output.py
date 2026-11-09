@@ -184,8 +184,50 @@ def build_completed(season, done, pbp, previous, snapshots_dir, params) -> list:
     missing = ids - set(frozen)
     if missing:
         frozen.update(_backfill(done, pbp, missing, params))
-    out = [dict(frozen[r['game_id']], final=_final(r)) for r in done.to_dict('records')]
+    out = [dict(_prediction(frozen[r['game_id']]), final=_final(r)) for r in done.to_dict('records')]
     return sorted(out, key=_game_key)
+
+
+def _games_known_at(done, entry):
+    """Completed games the original prediction could see: those played before the day it was published, or, for a
+    backfilled entry, those from earlier weeks."""
+    if entry.get('predicted_at'):
+        return done[done.gameday.astype(str) < entry['predicted_at'][:10]]
+    return done[done.week < entry['week']]
+
+
+def apply_starter_corrections(completed, done, pbp, corrections, params) -> list:
+    """Replace the frozen prediction of each completed game in `corrections` ({game_id: {"starters": {team: QB},
+    "note": str}}) with one recomputed from the same games the original saw and the same starters, except the
+    listed QBs. For a starter the published run got wrong before kickoff. The entry becomes source "corrected",
+    keeps predicted_at and the market fields, and records the change in corrected_starters and note. Applying a
+    correction again gives the same numbers, so later runs are stable. Returns messages for entries skipped."""
+    from .game_model import predict
+    from .ratings import build_ratings
+    by_id = {e['game_id']: e for e in completed}
+    problems = [f"starter corrections: {gid} is not a completed game" for gid in sorted(corrections) if gid not in by_id]
+    for gid, spec in sorted(corrections.items()):
+        e = by_id.get(gid)
+        if e is None:
+            continue
+        changes = dict(spec.get('starters') or {})
+        bad = sorted(set(changes) - {e['home'], e['away']})
+        if not changes or bad:
+            problems.append(f"starter corrections: {gid} must change a starter for a team in the game, got {changes}")
+            continue
+        starters = {t: q for t, q in ((e['home'], e.get('home_starter')), (e['away'], e.get('away_starter'))) if q}
+        starters.update(changes)
+        known = _games_known_at(done, e)
+        rs = build_ratings(known, pbp[pbp.game_id.isin(known.game_id)], starters, params)
+        pr = predict(e['away'], e['home'], e['neutral'], rs, params)
+        r = _game_out(dict(e, p_home=pr.p_home, margin=pr.margin, nudge=pr.nudge, components=dict(
+            home_matchup=pr.home_matchup, away_matchup=pr.away_matchup, matchup_points=pr.matchup_points,
+            hfa=pr.hfa, nudge=pr.nudge, home_qb_adj_pts=params.slope*rs.qb_adj_pred[e['home']],
+            away_qb_adj_pts=params.slope*rs.qb_adj_pred[e['away']])))
+        e.update(p_home=r['p_home'], margin=r['margin'], nudge=r['nudge'], components=r['components'],
+                 home_starter=starters.get(e['home']), away_starter=starters.get(e['away']), source='corrected',
+                 corrected_starters=changes, note=spec.get('note'))
+    return problems
 
 
 def _walk(x, path="payload"):
@@ -232,8 +274,9 @@ def validate(payload, done, pbp, previous: Optional[dict] = None) -> None:
             raise ValueError(f"games listed as both completed and remaining: {sorted(both)[:5]}")
         if previous and previous.get('season') == payload.get('season'):
             now = {g['game_id']: _prediction(g) for g in completed}
+            corrected = {g['game_id'] for g in completed if g.get('source') == 'corrected'}
             changed = [e['game_id'] for e in previous.get('completed') or []
-                       if e['game_id'] in now and now[e['game_id']] != _prediction(e)]
+                       if e['game_id'] in now and e['game_id'] not in corrected and now[e['game_id']] != _prediction(e)]
             if changed:
                 raise ValueError(f"frozen predictions changed for completed games: {sorted(changed)[:5]}")
     tw = payload.get('through_week')

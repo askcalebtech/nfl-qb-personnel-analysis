@@ -7,7 +7,7 @@ import tempfile
 
 from .constants import PARAMS
 from .data import download, load
-from .output import build_completed, build_games, build_payload, has_later_results, publish, validate
+from .output import apply_starter_corrections, build_completed, build_games, build_payload, has_later_results, publish, validate
 from .ratings import build_ratings, dropbacks, raw_values
 from .simulate import simulate
 
@@ -18,6 +18,8 @@ def main(argv=None) -> int:
     ap.add_argument('--out', required=True)
     ap.add_argument('--snapshots', required=True)
     ap.add_argument('--starters', required=True, help='JSON file mapping team code to starting QB')
+    ap.add_argument('--corrections', default=None,
+                    help='JSON file of starter corrections for completed games, {game_id: {"starters": {team: QB}, "note": str}}')
     ap.add_argument('--data-dir', default=None, help='download location (default: a new temp directory)')
     ap.add_argument('--no-download', action='store_true', help='reuse files already in --data-dir')
     args = ap.parse_args(argv)
@@ -44,6 +46,12 @@ def main(argv=None) -> int:
     games = build_games(todo, rs, PARAMS)
     sim = simulate(done, games)
     completed = build_completed(args.season, done, pbp, previous, args.snapshots, PARAMS)
+    corrections = {}
+    if args.corrections:
+        with open(args.corrections) as f:
+            corrections = json.load(f)
+    for msg in apply_starter_corrections(completed, done, pbp, corrections, PARAMS):
+        print(f"WARNING: {msg}")
     payload = build_payload(args.season, done, todo, rs, raw, games, sim, completed=completed)
     for w in payload['warnings']:
         print(f"WARNING: {w}")

@@ -8,6 +8,7 @@ on:
     branches: [main]
     paths:
       - projections/starters.json
+      - projections/starter_corrections.json
   workflow_dispatch:
 
 # Covers both jobs, so a build and its publish finish before the next run starts.
@@ -52,6 +53,7 @@ jobs:
             --out frontend/public/data/projections.json \
             --snapshots projections/snapshots \
             --starters projections/starters.json \
+            --corrections projections/starter_corrections.json \
             --data-dir "$RUNNER_TEMP/nfl-data"
 
       # One tar file keeps the directory layout intact (upload-artifact strips the least common

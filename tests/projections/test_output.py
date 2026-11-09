@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 
 from projections.constants import PARAMS, TEAMS
-from projections.output import (build_completed, build_games, build_payload, publish, validate, write_if_changed,
+from projections.output import (apply_starter_corrections, build_completed, build_games, build_payload, publish, validate, write_if_changed,
                                  write_snapshot)
 from projections.ratings import build_ratings, dropbacks, raw_values
 from projections.simulate import simulate
@@ -401,3 +401,69 @@ def test_validate_rejects_completed_probability_out_of_range():
     payload['completed'][0]['p_home'] = 1.5
     with pytest.raises(ValueError, match='probability'):
         validate(payload, done, pbp)
+
+
+# ---- Starter corrections ----
+
+def _corrected(spec=None):
+    payload, done, pbp, _ = make()
+    comp = copy.deepcopy(payload['completed'])
+    msgs = apply_starter_corrections(comp, done, pbp, spec or {'g3': {'starters': {'BUF': 'Nobody'}, 'note': 'n'}},
+                                     PARAMS)
+    return payload, comp, done, pbp, msgs
+
+
+def test_correction_replaces_prediction_and_changes_only_that_qb():
+    payload, comp, _, _, msgs = _corrected()
+    before, g3 = _by_id(payload['completed'])['g3'], _by_id(comp)['g3']   # week 2, BUF @ NE
+    assert msgs == []
+    assert g3['source'] == 'corrected' and g3['corrected_starters'] == {'BUF': 'Nobody'} and g3['note'] == 'n'
+    assert g3['away_starter'] == 'Nobody' and g3['home_starter'] == before['home_starter']
+    assert g3['components']['away_qb_adj_pts'] != before['components']['away_qb_adj_pts']
+    assert g3['components']['home_qb_adj_pts'] == before['components']['home_qb_adj_pts']
+    assert g3['margin'] != before['margin']
+    for k in ('predicted_at', 'mkt_home', 'spread', 'final', 'week', 'gameday'):
+        assert g3[k] == before[k]
+    assert {k: v for k, v in _by_id(comp)['g1'].items()} == _by_id(payload['completed'])['g1']
+
+
+def test_correction_with_current_starter_reproduces_prediction():
+    payload, done, pbp, _ = make()
+    for e in payload['completed']:
+        if e['week'] < 2:
+            continue
+        comp = copy.deepcopy(payload['completed'])
+        apply_starter_corrections(comp, done, pbp, {e['game_id']: {'starters': {e['home']: e['home_starter']}}}, PARAMS)
+        x = _by_id(comp)[e['game_id']]
+        assert (x['margin'], x['p_home'], x['components']) == (e['margin'], e['p_home'], e['components'])
+
+
+def test_correction_is_stable_across_runs_and_passes_validation():
+    spec = {'g3': {'starters': {'BUF': 'Nobody'}, 'note': 'n'}}
+    prev, done, pbp, _ = make()
+    validate(prev, done, pbp)
+    apply_starter_corrections(prev['completed'], done, pbp, spec, PARAMS)
+    validate(prev, done, pbp, None)
+    payload, done, pbp, _ = make(previous=prev)
+    apply_starter_corrections(payload['completed'], done, pbp, spec, PARAMS)
+    assert payload['completed'] == prev['completed']
+    payload2, done, pbp, _ = make(previous=prev)   # correction removed from the file: stays corrected
+    assert _by_id(payload2['completed'])['g3'] == _by_id(prev['completed'])['g3']
+    validate(payload2, done, pbp, prev)
+
+
+def test_correction_allowed_to_change_frozen_prediction_but_others_are_not():
+    prev, done, pbp, _ = make()
+    payload = copy.deepcopy(prev)
+    apply_starter_corrections(payload['completed'], done, pbp, {'g3': {'starters': {'BUF': 'Nobody'}}}, PARAMS)
+    validate(payload, done, pbp, prev)
+    _by_id(payload['completed'])['g2']['margin'] += 1
+    with pytest.raises(ValueError, match='frozen predictions changed'):
+        validate(payload, done, pbp, prev)
+
+
+def test_correction_unknown_game_wrong_team_or_empty_is_skipped():
+    payload, comp, _, _, msgs = _corrected({'nope': {'starters': {'BUF': 'X'}}, 'g1': {'starters': {'KC': 'X'}},
+                                            'g2': {'starters': {}}})
+    assert len(msgs) == 3
+    assert comp == payload['completed']

@@ -160,10 +160,12 @@ export interface GameFinal {
 /** A completed game: the pre-game prediction (frozen) plus the actual result. */
 export interface CompletedGame extends ProjectionGame {
   final: GameFinal
-  source: 'published' | 'backfill' // as published, or recomputed from earlier weeks' games only
+  source: 'published' | 'backfill' | 'corrected' // as published; recomputed from earlier weeks' games; or published with a starter fixed
   predicted_at: string | null // ISO UTC of the published file, null for backfill
   home_starter: string | null
   away_starter: string | null
+  corrected_starters?: Record<string, string> // team code -> QB, when source is "corrected"
+  note?: string | null
 }
 
 export interface ProjectionsData {
