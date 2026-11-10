@@ -2,5 +2,9 @@
   "2026_09_CLE_NO": {
     "starters": {"CLE": "S.Sanders"},
     "note": "Sanders started; the published prediction assumed Watson because starters.json had no CLE entry before kickoff."
+  },
+  "2026_09_BUF_MIN": {
+    "starters": {"MIN": "C.Wentz"},
+    "note": "Wentz started; the published prediction assumed Murray because starters.json had no MIN entry before kickoff."
   }
 }
