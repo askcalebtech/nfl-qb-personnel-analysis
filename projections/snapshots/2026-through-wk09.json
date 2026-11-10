@@ -4601,10 +4601,13 @@
     "away_matchup": -197.0697,
     "away_qb_adj_pts": 0.0,
     "hfa": 2.11,
-    "home_matchup": -22.8544,
-    "home_qb_adj_pts": -0.0536,
-    "matchup_points": 1.5784,
+    "home_matchup": 5.2524,
+    "home_qb_adj_pts": 0.2011,
+    "matchup_points": 1.833,
     "nudge": 0.0
+   },
+   "corrected_starters": {
+    "MIN": "C.Wentz"
    },
    "final": {
     "away_score": 23,
@@ -4616,14 +4619,15 @@
    "game_id": "2026_09_BUF_MIN",
    "gameday": "2026-11-09",
    "home": "MIN",
-   "home_starter": "K.Murray",
-   "margin": 3.6884,
+   "home_starter": "C.Wentz",
+   "margin": 3.943,
    "mkt_home": 0.3631,
    "neutral": false,
+   "note": "Wentz started; the published prediction assumed Murray because starters.json had no MIN entry before kickoff.",
    "nudge": 0.0,
-   "p_home": 0.6112,
+   "p_home": 0.6186,
    "predicted_at": "2026-11-09T22:00:41Z",
-   "source": "published",
+   "source": "corrected",
    "spread": -3.5,
    "stadium": "U.S. Bank Stadium",
    "week": 9
@@ -4645,7 +4649,7 @@
    "gameday": "2026-11-12",
    "home": "NYG",
    "margin": 3.0751,
-   "mkt_home": 0.5427,
+   "mkt_home": 0.5514,
    "neutral": false,
    "nudge": 0.0,
    "p_home": 0.5931,
@@ -4944,7 +4948,7 @@
    "gameday": "2026-11-16",
    "home": "BAL",
    "margin": 1.8328,
-   "mkt_home": 0.6636,
+   "mkt_home": 0.6575,
    "neutral": false,
    "nudge": 1.0,
    "p_home": 0.5558,
@@ -7759,7 +7763,7 @@
    "week": 18
   }
  ],
- "generated_at": "2026-11-10T14:18:47Z",
+ "generated_at": "2026-11-10T14:30:08Z",
  "last_result_date": "2026-11-09",
  "league_anya": 6.1226,
  "model_version": "2026.1",
