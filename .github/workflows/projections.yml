@@ -22,7 +22,8 @@ permissions:
 jobs:
   # Runs third-party Python with a read-only token and no stored git credentials.
   build:
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest (26.04) has no Python 3.9 build; 3.9 matches local dev.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
       contents: read
